@@ -1,0 +1,12 @@
+__pycache__/
+.pytest_cache/
+.venv/
+.env
+*.session
+*.session-journal
+config.json
+blocklist.json
+.telegram-pult/
+secrets/
+.env.*
+*.pem

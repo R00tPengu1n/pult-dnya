@@ -1,0 +1,747 @@
+<title>Пульт дня</title>
+<meta name="claude:viewport-fit-sides" content="cover">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Onest:wght@400;500;600;700&family=Unbounded:wght@500;700&family=JetBrains+Mono:wght@400;500&display=swap">
+<style>
+/* Layout: шапка с датой и статусом дня → две колонки (задачи | сводка) → блок «Скоро». Утро — янтарь, вечер — индиго. */
+:root {
+  --bg: #f3f5f8; --surface: #ffffff; --line: #dfe4ec; --fg: #172033; --muted: #5d6779;
+  --accent: #c7780e; --accent-soft: #fdf1df; --dusk: #4a50b8; --dusk-soft: #ebecfb;
+  --ok: #2f8a57; --ok-soft: #e3f3ea; --hot: #c23b3b; --hot-soft: #fbe6e6;
+  --f-display: "Unbounded", "Segoe UI", system-ui, sans-serif;
+  --f-body: "Onest", "Segoe UI", system-ui, sans-serif;
+  --f-mono: "JetBrains Mono", ui-monospace, Consolas, monospace;
+}
+@media (prefers-color-scheme: dark) { :root:not([data-theme="light"]) {
+  --bg: #0f1420; --surface: #171e2d; --line: #29324480; --fg: #e7ebf3; --muted: #97a1b5;
+  --accent: #f0a640; --accent-soft: #3a2a14; --dusk: #959bff; --dusk-soft: #23264a;
+  --ok: #5cc48a; --ok-soft: #173225; --hot: #f07474; --hot-soft: #3a1c1f; color-scheme: dark } }
+:root[data-theme="dark"] {
+  --bg: #0f1420; --surface: #171e2d; --line: #29324480; --fg: #e7ebf3; --muted: #97a1b5;
+  --accent: #f0a640; --accent-soft: #3a2a14; --dusk: #959bff; --dusk-soft: #23264a;
+  --ok: #5cc48a; --ok-soft: #173225; --hot: #f07474; --hot-soft: #3a1c1f; color-scheme: dark }
+
+* { box-sizing: border-box }
+body { background: var(--bg); color: var(--fg); font: 15px/1.5 var(--f-body); }
+.wrap { max-width: 1120px; margin: 0 auto; padding-block: 28px 48px;
+  padding-left: max(16px, env(safe-area-inset-left, 0px)); padding-right: max(16px, env(safe-area-inset-right, 0px));
+  display: grid; gap: 24px }
+button, input, select { font: inherit; color: inherit }
+button { cursor: pointer }
+:focus-visible { outline: 2px solid var(--accent); outline-offset: 2px }
+
+header { display: flex; flex-wrap: wrap; align-items: end; justify-content: space-between; gap: 16px }
+.eyebrow { font: 500 12px/1 var(--f-mono); letter-spacing: .08em; text-transform: uppercase; color: var(--muted) }
+h1 { font: 700 clamp(26px, 4vw, 38px)/1.1 var(--f-display); margin: 8px 0 0; text-wrap: balance }
+h2 { font: 600 17px/1.2 var(--f-body); margin: 0 }
+.daybar { display: flex; align-items: center; gap: 12px; flex-wrap: wrap }
+.progress { font: 500 13px var(--f-mono); color: var(--muted); font-variant-numeric: tabular-nums }
+.btn { border: 1px solid var(--line); background: var(--surface); border-radius: 10px; padding: 8px 14px; font-weight: 500 }
+.btn:hover { border-color: var(--muted) }
+.btn.primary { background: var(--dusk); border-color: var(--dusk); color: #fff }
+.btn.primary:hover { filter: brightness(1.08) }
+.btn.small { padding: 4px 10px; font-size: 13px; border-radius: 8px }
+.btn:disabled { opacity: .5; cursor: default }
+
+.grid { display: grid; grid-template-columns: minmax(0, 1.15fr) minmax(0, 1fr); gap: 24px; align-items: start }
+@media (max-width: 860px) { .grid { grid-template-columns: minmax(0, 1fr) } }
+.panel { background: var(--surface); border: 1px solid var(--line); border-radius: 16px; padding: 20px; display: grid; gap: 16px; min-width: 0 }
+.panel-head { display: flex; align-items: center; justify-content: space-between; gap: 12px; flex-wrap: wrap }
+
+.tabs { display: inline-flex; background: var(--bg); border-radius: 10px; padding: 3px; gap: 2px }
+.tabs button { border: 0; background: none; padding: 5px 12px; border-radius: 8px; font-size: 14px; color: var(--muted) }
+.tabs button[aria-selected="true"] { background: var(--surface); color: var(--fg); box-shadow: 0 1px 2px #0002 }
+.tabs .count { font: 500 11px var(--f-mono); margin-left: 4px; color: var(--muted) }
+
+form.add { display: grid; gap: 8px }
+.add-row { display: flex; gap: 8px; flex-wrap: wrap; align-items: center }
+form.add input[type=text] { flex: 1 1 220px; min-width: 0; border: 1px solid var(--line); background: var(--bg); border-radius: 10px; padding: 9px 12px }
+.field { border: 1px solid var(--line); background: var(--bg); border-radius: 8px; padding: 4px 8px; font-size: 13px }
+.urgent-toggle { display: flex; align-items: center; gap: 6px; font-size: 13px; color: var(--muted); white-space: nowrap; user-select: none }
+
+ul.tasks { list-style: none; margin: 0; padding: 0; display: grid; gap: 2px }
+.task { display: grid; grid-template-columns: 22px minmax(0, 1fr) auto; align-items: center; gap: 4px 10px; padding: 8px 6px; border-radius: 10px }
+.task:hover { background: var(--bg) }
+.task.stale { background: var(--hot-soft) }
+.task input[type=checkbox] { width: 18px; height: 18px; accent-color: var(--ok); margin: 0 }
+.task .t { overflow-wrap: anywhere }
+.task.done .t { color: var(--muted); text-decoration: line-through }
+.task .meta { display: flex; gap: 6px; align-items: center; flex-wrap: wrap; justify-content: end }
+.task .picker { grid-column: 2 / -1; display: flex; gap: 6px; flex-wrap: wrap; align-items: center }
+.chip { font: 500 11px/1 var(--f-mono); letter-spacing: .04em; padding: 4px 7px; border-radius: 6px; white-space: nowrap }
+.chip.hot { background: var(--hot-soft); color: var(--hot) }
+.chip.moved { background: var(--accent-soft); color: var(--accent) }
+.chip.stale { background: var(--hot); color: var(--surface) }
+.chip.rep { background: var(--dusk-soft); color: var(--dusk) }
+.icon-btn { border: 0; background: none; color: var(--muted); padding: 4px 6px; border-radius: 6px; font-size: 13px; white-space: nowrap }
+.icon-btn:hover { background: var(--line); color: var(--fg) }
+.icon-btn.on { color: var(--hot) }
+.chip.cal { background: var(--ok-soft); color: var(--ok); font-variant-numeric: tabular-nums }
+.sub { grid-column: 2 / -1; display: grid; gap: 8px; background: var(--surface); border: 1px solid var(--line); border-radius: 10px; padding: 10px 12px; font-size: 14px }
+.sub-row { display: flex; gap: 8px; flex-wrap: wrap; align-items: center }
+.sub label { display: flex; gap: 8px; align-items: flex-start }
+.sub label input { margin-top: 3px }
+.sub .err { color: var(--hot); font-size: 13px }
+.bulk { display: flex; gap: 8px; flex-wrap: wrap; align-items: center; border-top: 1px dashed var(--line); padding-top: 12px }
+.empty { color: var(--muted); font-size: 14px; padding: 6px }
+.overdue { background: var(--accent-soft); border-radius: 12px; padding: 12px 14px; display: grid; gap: 8px }
+.overdue .panel-head h2 { font-size: 15px; color: var(--accent) }
+.group { display: grid; gap: 4px }
+.group-title { font: 500 12px var(--f-mono); letter-spacing: .06em; text-transform: uppercase; color: var(--muted); padding: 6px 6px 0 }
+
+.close-day { border: 1px solid var(--dusk); background: var(--dusk-soft); border-radius: 14px; padding: 16px; display: grid; gap: 12px }
+.close-day h3, .report h3 { margin: 0; font: 600 15px var(--f-body); color: var(--dusk) }
+.close-day label { display: flex; gap: 10px; align-items: center; font-size: 14px }
+.report { background: var(--dusk-soft); border-radius: 14px; padding: 14px 16px; display: grid; gap: 6px; font-size: 14px }
+.report .muted { color: var(--muted) }
+
+.brief { display: grid; gap: 18px }
+.sec { display: grid; gap: 8px }
+.sec-title { display: flex; align-items: center; justify-content: space-between; gap: 8px }
+.sec-title .eyebrow { color: var(--accent) }
+.sec.evening .sec-title .eyebrow { color: var(--dusk) }
+.status { font: 500 11px var(--f-mono); color: var(--muted) }
+.summary { font-size: 15px; line-height: 1.55; margin: 0; white-space: pre-line }
+.rows { display: grid; gap: 6px; margin: 0; padding: 0; list-style: none; font-size: 14px }
+.rows li { display: grid; grid-template-columns: 56px minmax(0, 1fr); gap: 10px; overflow-wrap: anywhere }
+.rows.plain li, .rows li.wide { grid-template-columns: minmax(0, 1fr) }
+.rows.mail li { grid-template-columns: minmax(0, 1fr) auto; align-items: start }
+.rows .time { font: 500 13px var(--f-mono); color: var(--muted); font-variant-numeric: tabular-nums }
+.hint { font-size: 13px; color: var(--muted); background: var(--bg); border-radius: 10px; padding: 10px 12px }
+.hint b { color: var(--fg); font-weight: 600 }
+.review { border-left: 3px solid var(--dusk); padding: 2px 0 2px 12px; font-size: 14px; white-space: pre-line }
+
+.soon { display: grid; grid-template-columns: repeat(auto-fit, minmax(190px, 1fr)); gap: 10px }
+.soon div { border: 1px dashed var(--line); border-radius: 12px; padding: 12px 14px; font-size: 14px; color: var(--muted) }
+.soon b { display: block; color: var(--fg); font-weight: 600; margin-bottom: 2px }
+
+.toast { position: fixed; left: 50%; transform: translateX(-50%); bottom: calc(20px + env(safe-area-inset-bottom, 0px)); background: var(--fg); color: var(--bg); padding: 10px 16px; border-radius: 10px; font-size: 14px; max-width: calc(100% - 32px) }
+@media (prefers-reduced-motion: no-preference) { .task { transition: background .15s } }
+</style>
+
+<div class="wrap">
+  <header>
+    <div>
+      <div class="eyebrow" id="dateLine">Сегодня</div>
+      <h1 id="greeting">Пульт дня</h1>
+    </div>
+    <div class="daybar">
+      <span class="progress" id="progress"></span>
+      <button class="btn primary" id="endDayBtn" type="button">Закончил работу</button>
+    </div>
+  </header>
+
+  <div class="grid">
+    <section class="panel" aria-labelledby="tasksTitle">
+      <div class="panel-head">
+        <h2 id="tasksTitle">Задачи</h2>
+        <div class="tabs" role="tablist">
+          <button role="tab" data-view="today" aria-selected="true" type="button">Сегодня</button>
+          <button role="tab" data-view="tomorrow" aria-selected="false" type="button">Завтра</button>
+          <button role="tab" data-view="later" aria-selected="false" type="button">Потом<span class="count" id="laterCount"></span></button>
+        </div>
+      </div>
+
+      <div class="close-day" id="closeDay" hidden>
+        <h3>Закрываем день</h3>
+        <div id="closeDayBody"></div>
+        <div class="bulk" style="border:0;padding:0">
+          <button class="btn primary" id="confirmClose" type="button">Закрыть день</button>
+          <button class="btn" id="cancelClose" type="button">Отмена</button>
+        </div>
+      </div>
+
+      <div class="report" id="todayReport" hidden></div>
+
+      <div class="overdue" id="overdue" hidden>
+        <div class="panel-head">
+          <h2>Хвосты с прошлых дней</h2>
+          <button class="btn small" id="pullAll" type="button">Все на сегодня</button>
+        </div>
+        <ul class="tasks" id="overdueList"></ul>
+      </div>
+
+      <form class="add" id="addForm" autocomplete="off">
+        <div class="add-row">
+          <input type="text" id="newTask" placeholder="Новая задача…" aria-label="Новая задача">
+          <button class="btn" type="submit">Добавить</button>
+        </div>
+        <div class="add-row">
+          <select class="field" id="newWhen" aria-label="Когда">
+            <option value="today">на сегодня</option>
+            <option value="tomorrow">на завтра</option>
+            <option value="date">на дату…</option>
+            <option value="later">потом, без даты</option>
+          </select>
+          <input type="date" class="field" id="newDate" aria-label="Дата" hidden>
+          <select class="field" id="newRepeat" aria-label="Повтор">
+            <option value="">не повторять</option>
+            <option value="daily">каждый день</option>
+            <option value="weekdays">по будням</option>
+            <option value="weekends">по выходным</option>
+            <option value="weekly">раз в неделю</option>
+          </select>
+          <label class="urgent-toggle"><input type="checkbox" id="newUrgent"> срочно</label>
+        </div>
+      </form>
+
+      <div id="taskArea"></div>
+
+      <div class="bulk" id="bulk" hidden>
+        <button class="btn small" id="moveNonUrgent" type="button"></button>
+        <span class="status">срочные останутся на сегодня</span>
+      </div>
+    </section>
+
+    <section class="panel" aria-labelledby="briefTitle">
+      <div class="panel-head">
+        <h2 id="briefTitle">Сводка</h2>
+        <span class="status" id="briefStamp"></span>
+      </div>
+      <div class="brief" id="brief">
+        <div class="sec evening" id="yesterdaySec" hidden>
+          <div class="sec-title"><span class="eyebrow">Вчера</span><span class="status" id="yStatus"></span></div>
+          <div id="yBody"></div>
+        </div>
+        <div class="sec" id="summarySec">
+          <div class="sec-title"><span class="eyebrow">Утро</span></div>
+          <p class="summary" id="summary"></p>
+        </div>
+        <div class="sec">
+          <div class="sec-title"><span class="eyebrow">Календарь</span><span class="status" id="calStatus"></span></div>
+          <ul class="rows" id="calList"></ul>
+        </div>
+        <div class="sec">
+          <div class="sec-title"><span class="eyebrow">Почта</span><span class="status" id="mailStatus"></span></div>
+          <ul class="rows mail" id="mailList"></ul>
+        </div>
+        <div class="sec">
+          <div class="sec-title"><span class="eyebrow">Telegram</span><span class="status" id="tgStatus"></span></div>
+          <ul class="rows mail" id="tgList"></ul>
+        </div>
+        <div class="sec">
+          <div class="sec-title"><span class="eyebrow">GitHub</span><span class="status" id="ghStatus"></span></div>
+          <ul class="rows plain" id="ghList"></ul>
+        </div>
+        <div class="sec evening" id="weekSec" hidden>
+          <div class="sec-title"><span class="eyebrow">Итоги недели</span><span class="status" id="weekStamp"></span></div>
+          <div class="review" id="weekText"></div>
+        </div>
+        <div class="sec evening" id="monthSec" hidden>
+          <div class="sec-title"><span class="eyebrow">Итоги месяца</span><span class="status" id="monthStamp"></span></div>
+          <div class="review" id="monthText"></div>
+        </div>
+      </div>
+    </section>
+  </div>
+
+  <section class="panel" aria-labelledby="soonTitle">
+    <div class="panel-head"><h2 id="soonTitle">Скоро на пульте</h2><span class="status">запланировано, ещё не подключено</span></div>
+    <div class="soon">
+      <div><b>Telegram-канал</b>подписчики, охваты, лучшие посты</div>
+      <div><b>YouTube</b>просмотры, подписчики, новые комментарии</div>
+      <div><b>Другие соцсети</b>статистика и идеи для контента</div>
+    </div>
+  </section>
+</div>
+<div class="toast" id="toast" hidden></div>
+
+<script>
+const NAME = "<NAME>";
+const STALE_AFTER = 3;              // столько переносов — и задача подсвечивается
+const $ = s => document.querySelector(s);
+const pad = n => String(n).padStart(2, "0");
+const iso = d => `${d.getFullYear()}-${pad(d.getMonth() + 1)}-${pad(d.getDate())}`;
+const shift = (d, n) => { const x = new Date(d); x.setDate(x.getDate() + n); return x; };
+const now = new Date();
+const TODAY = iso(now), TOMORROW = iso(shift(now, 1)), YESTERDAY = iso(shift(now, -1));
+const RECENT_FROM = iso(shift(now, -2));
+const LATER = "";                   // дата задачи из бэклога
+const REPEAT_DAYS = { daily: [0, 1, 2, 3, 4, 5, 6], weekdays: [1, 2, 3, 4, 5], weekends: [0, 6] };
+const WD = ["вс", "пн", "вт", "ср", "чт", "пт", "сб"];
+
+let db = null, view = "today", closing = false, pickerFor = null, recentLoaded = false;
+const taskMap = new Map();          // id -> task, merged from two subscriptions
+const rules = new Map();            // повторяющиеся задачи
+let dayToday = null, dayYesterday = null, brief = null, weekReview = null, monthReview = null;
+const mailAdded = new Set();
+const tgAdded = new Set();
+
+/* ---------- Google Календарь и разбивка на шаги ---------- */
+const CAL = "Google Calendar";
+let mcp = null, sample = null, sampleOff = false;
+let calFor = null, stepsFor = null;
+const steps = new Map();            // taskId -> {status, items:[{text, on}], msg, dropOriginal}
+const calBusy = new Set();
+const SLOTS = [];
+for (let m = 6 * 60; m <= 23 * 60 + 45; m += 15) SLOTS.push(`${pad(Math.floor(m / 60))}:${pad(m % 60)}`);
+const toMin = s => { const [h, m] = s.split(":").map(Number); return h * 60 + m; };
+const hm = s => s ? s.replace(/^0/, "") : "";
+const calTime = (date, slot) => `${date}T${slot}:00`;
+function pickEventId(p) {
+  if (!p) return null;
+  if (typeof p === "string") return p.match(/"id"\s*:\s*"([^"]+)"/)?.[1] || null;
+  return p.id || p.eventId || p.event?.id || null;
+}
+function calErr(e) {
+  switch (e?.code) {
+    case "needs_reauth": return "Переподключи Google Календарь: claude.ai → Настройки → Коннекторы";
+    case "server_not_connected": case "selection_required": return "Подключи Google Календарь: claude.ai → Настройки → Коннекторы";
+    case "not_in_manifest": case "approval_required": case "not_granted": return "Пульту не разрешён доступ к календарю. Разреши его в меню доступа пульта";
+    case "blocked_by_policy": return "Календарь заблокирован настройками организации";
+    case "tool_error": return "Календарь отказал: " + (e.message || "неизвестная ошибка");
+    case "server_unavailable": case "upstream_error": return "Календарь не ответил. Проверь в нём, прошло ли изменение, прежде чем жать снова";
+    default: return "Не удалось связаться с календарём";
+  }
+}
+async function calCall(tool, input) {
+  if (!mcp) throw { code: "not_granted" };
+  return mcp.callTool(CAL, tool, input);
+}
+
+function el(tag, props = {}, ...kids) {
+  const e = document.createElement(tag);
+  for (const [k, v] of Object.entries(props)) {
+    if (k === "class") e.className = v; else if (k.startsWith("on")) e.addEventListener(k.slice(2), v);
+    else if (k === "value") e.value = v;
+    else if (v !== false && v != null) e.setAttribute(k, v === true ? "" : v);
+  }
+  for (const k of kids.flat()) if (k != null) e.append(k);
+  return e;
+}
+let toastTimer;
+function toast(msg) { const t = $("#toast"); t.textContent = msg; t.hidden = false; clearTimeout(toastTimer); toastTimer = setTimeout(() => t.hidden = true, 2600); }
+async function write(fn, okMsg) {
+  if (!db) { toast("Хранилище недоступно: откройте пульт в claude.ai под своим аккаунтом"); return false; }
+  try { await fn(); if (okMsg) toast(okMsg); return true; }
+  catch (e) { toast(e?.code === "quota_exceeded" ? "Хранилище заполнено: удалите старые задачи" : "Не удалось сохранить, попробуйте ещё раз"); return false; }
+}
+const fmtDate = s => new Date(s + "T12:00:00").toLocaleDateString("ru-RU", { day: "numeric", month: "long" });
+const fmtDay = s => new Date(s + "T12:00:00").toLocaleDateString("ru-RU", { weekday: "long", day: "numeric", month: "long" });
+const fmtTime = ts => ts ? new Date(ts).toLocaleTimeString("ru-RU", { hour: "2-digit", minute: "2-digit" }) : "";
+const weekdayOf = s => new Date(s + "T12:00:00").getDay();
+const daysLabel = days => days.length === 7 ? "каждый день" : days.join() === "1,2,3,4,5" ? "по будням"
+  : days.join() === "0,6" ? "по выходным" : days.map(d => WD[d]).join(", ");
+
+/* ---------- header ---------- */
+function renderHeader() {
+  $("#dateLine").textContent = now.toLocaleDateString("ru-RU", { weekday: "long", day: "numeric", month: "long" });
+  const h = now.getHours();
+  $("#greeting").textContent = (h < 5 ? "Доброй ночи" : h < 12 ? "Доброе утро" : h < 18 ? "Добрый день" : "Добрый вечер") + ", " + NAME;
+  const list = tasksFor(TODAY), done = list.filter(t => t.done).length;
+  $("#progress").textContent = list.length ? `${done} из ${list.length} сделано` : "";
+  const closed = !!dayToday?.closedAt;
+  $("#endDayBtn").textContent = closed ? "День закрыт" : "Закончил работу";
+  $("#endDayBtn").disabled = closed || closing;
+}
+
+/* ---------- tasks ---------- */
+const live = () => [...taskMap.values()].filter(t => !t.deleted);
+const byOrder = (a, b) => (a.done - b.done) || ((b.urgent ? 1 : 0) - (a.urgent ? 1 : 0)) || ((a.createdAt || 0) - (b.createdAt || 0));
+const tasksFor = date => live().filter(t => t.date === date).sort(byOrder);
+const overdueTasks = () => live().filter(t => !t.done && t.date && t.date < TODAY).sort((a, b) => a.date.localeCompare(b.date) || byOrder(a, b));
+const backlog = () => live().filter(t => !t.done && t.date === LATER).sort(byOrder);
+const upcoming = () => live().filter(t => !t.done && t.date > TOMORROW).sort((a, b) => a.date.localeCompare(b.date) || byOrder(a, b));
+
+const ref = id => db.collection("tasks").doc(id);
+const CAL_CLEAR = { calEventId: null, calStart: null, calEnd: null };
+async function moveTask(t, date) {
+  const later = date === LATER || (t.date && date > t.date);
+  const patch = { date, movedCount: (t.movedCount || 0) + (later ? 1 : 0) };
+  // событие в календаре едет вместе с задачей
+  if (t.calStart && date !== t.date) {
+    if (!t.calEventId) Object.assign(patch, CAL_CLEAR);
+    else if (date === LATER) {
+      try { await calCall("delete_event", { eventId: t.calEventId }); Object.assign(patch, CAL_CLEAR); }
+      catch (e) { toast(calErr(e)); }
+    } else {
+      try { await calCall("update_event", { eventId: t.calEventId, startTime: calTime(date, t.calStart), endTime: calTime(date, t.calEnd) }); }
+      catch (e) { toast(calErr(e)); }
+    }
+  }
+  return write(() => ref(t.id).update(patch));
+}
+// повторяющуюся задачу не удаляем, а прячем: иначе пульт создаст её снова
+async function removeTask(t) {
+  if (t.calEventId) {
+    try { await calCall("delete_event", { eventId: t.calEventId }); }
+    catch (e) { toast("Задача удалена, но событие в календаре осталось. " + calErr(e)); }
+  }
+  return write(() => t.recurringId ? ref(t.id).update({ deleted: true, ...CAL_CLEAR }) : ref(t.id).delete());
+}
+
+/* календарь: выбор окна по 15 минут */
+function calPanel(t) {
+  const start = el("select", { class: "field", "aria-label": "Начало" });
+  const end = el("select", { class: "field", "aria-label": "Конец" });
+  const s0 = t.calStart || "08:00";
+  for (const s of SLOTS.slice(0, -1)) start.append(el("option", { value: s, selected: s === s0 }, hm(s)));
+  const fillEnd = keep => {
+    const from = toMin(start.value);
+    const want = keep && toMin(keep) > from ? keep : SLOTS.find(s => toMin(s) >= from + 45) || SLOTS.at(-1);
+    end.replaceChildren(...SLOTS.filter(s => toMin(s) > from).map(s => el("option", { value: s, selected: s === want }, hm(s))));
+  };
+  fillEnd(t.calEnd);
+  start.addEventListener("change", () => fillEnd(end.value));
+  const busy = calBusy.has(t.id);
+  const kids = [el("div", { class: "sub-row" }, el("span", { class: "status" }, fmtDate(t.date) + ","), "с", start, "до", end,
+    el("button", { class: "btn small primary", type: "button", disabled: busy, onclick: () => sendToCal(t, start.value, end.value) },
+      busy ? "Отправляю…" : t.calEventId ? "Изменить время" : "В календарь"),
+    t.calStart ? el("button", { class: "btn small", type: "button", disabled: busy, onclick: () => dropFromCal(t) }, "Убрать из календаря") : null,
+    el("button", { class: "icon-btn", type: "button", onclick: () => { calFor = null; renderTasks(); } }, "закрыть"))];
+  if (t.calStart && !t.calEventId) kids.push(el("div", { class: "status" }, "Событие создано без связи с пультом: переносы его не сдвинут."));
+  return el("div", { class: "sub" }, kids);
+}
+async function sendToCal(t, start, end) {
+  if (toMin(end) <= toMin(start)) { toast("Конец должен быть позже начала"); return; }
+  calBusy.add(t.id); renderTasks();
+  try {
+    let id = t.calEventId;
+    if (id) await calCall("update_event", { eventId: id, summary: t.title, startTime: calTime(t.date, start), endTime: calTime(t.date, end) });
+    else {
+      const r = await calCall("create_event", { summary: t.title, startTime: calTime(t.date, start), endTime: calTime(t.date, end), description: "Задача из «Пульта дня»" });
+      id = pickEventId(r?.payload);
+    }
+    const ok = await write(() => ref(t.id).update({ calEventId: id || null, calStart: start, calEnd: end }),
+      `В календаре: ${fmtDate(t.date)}, ${hm(start)}–${hm(end)}`);
+    if (ok) calFor = null;
+  } catch (e) { toast(calErr(e)); }
+  finally { calBusy.delete(t.id); renderTasks(); }
+}
+async function dropFromCal(t) {
+  calBusy.add(t.id); renderTasks();
+  try {
+    if (t.calEventId) await calCall("delete_event", { eventId: t.calEventId });
+    if (await write(() => ref(t.id).update(CAL_CLEAR), "Убрано из календаря")) calFor = null;
+  } catch (e) { toast(calErr(e)); }
+  finally { calBusy.delete(t.id); renderTasks(); }
+}
+
+/* зависшая задача: Claude предлагает шаги */
+function sampleErr(e) {
+  switch (e?.code) {
+    case "not_granted": case "sampling_disabled": case "not_declared": case "capability_disabled": case "capability_removed":
+      sampleOff = true; return "Пульту не разрешено обращаться к Claude, разбивка на шаги отключена";
+    case "rate_limited": return "Слишком много запросов. Попробуй чуть позже";
+    case "session_expired": return "Нужно заново войти в claude.ai";
+    case "refused": return "Claude не стал разбирать эту задачу. Переформулируй её";
+    default: return "Не получилось придумать шаги. Попробуй ещё раз";
+  }
+}
+async function splitTask(t, fresh) {
+  stepsFor = t.id;
+  steps.set(t.id, { status: "loading", items: [], dropOriginal: true });
+  renderTasks();
+  const prompt = `Задача из личного списка дел: «${t.title}». Её переносили уже ${t.movedCount || 0} раз(а): похоже, она слишком большая или непонятно, с чего начать.
+Разбей её на 3–5 конкретных шагов. Каждый шаг делается за один подход, примерно за 15–60 минут. Первый шаг самый простой, чтобы было легко начать.
+Пиши по-русски, коротко, каждый шаг начинай с глагола в инфинитиве («Открыть…», «Составить…»).
+Ответь только JSON-массивом строк, например: ["Первый шаг", "Второй шаг"]`;
+  try {
+    const res = await sample.json(prompt, { modelTier: "quick", cache: fresh ? false : true });
+    const items = (Array.isArray(res) ? res : []).map(s => String(s).trim()).filter(Boolean).slice(0, 6);
+    if (!items.length) throw { code: "invalid_json" };
+    steps.set(t.id, { status: "ready", items: items.map(text => ({ text, on: true })), dropOriginal: true });
+  } catch (e) {
+    if (e?.code === "cancelled") { steps.delete(t.id); stepsFor = null; }
+    else steps.set(t.id, { status: "error", items: [], msg: sampleErr(e), dropOriginal: true });
+  }
+  renderTasks();
+}
+function stepsPanel(t) {
+  const st = steps.get(t.id) || { status: "loading", items: [] };
+  const close = el("button", { class: "icon-btn", type: "button", onclick: () => { stepsFor = null; steps.delete(t.id); renderTasks(); } }, "закрыть");
+  if (st.status === "loading") return el("div", { class: "sub" }, el("div", { class: "sub-row" }, el("span", { class: "status" }, "Claude придумывает шаги…"), close));
+  if (st.status === "error") return el("div", { class: "sub" }, el("div", { class: "err" }, st.msg),
+    el("div", { class: "sub-row" }, sampleOff ? null : el("button", { class: "btn small", type: "button", onclick: () => splitTask(t, true) }, "Ещё раз"), close));
+  const target = t.date && t.date >= TODAY ? t.date : t.date === LATER ? LATER : TODAY;
+  return el("div", { class: "sub" },
+    el("div", { class: "status" }, "Отметь шаги, которые станут отдельными задачами" + (target === LATER ? " (без даты)" : ` на ${fmtDate(target)}`) + ":"),
+    st.items.map(it => el("label", {}, el("input", { type: "checkbox", checked: it.on, onchange: e => { it.on = e.target.checked; } }), it.text)),
+    el("label", { class: "status" }, el("input", { type: "checkbox", checked: st.dropOriginal, onchange: e => { st.dropOriginal = e.target.checked; } }), "убрать исходную задачу"),
+    el("div", { class: "sub-row" },
+      el("button", { class: "btn small primary", type: "button", onclick: () => addSteps(t, st, target) }, "Добавить шаги"),
+      el("button", { class: "btn small", type: "button", onclick: () => splitTask(t, true) }, "Другие варианты"),
+      close));
+}
+async function addSteps(t, st, date) {
+  const chosen = st.items.filter(i => i.on).map(i => i.text);
+  if (!chosen.length) { toast("Отметь хотя бы один шаг"); return; }
+  const base = Date.now();
+  const ok = await write(async () => {
+    for (const [i, title] of chosen.entries())
+      await db.collection("tasks").add({ title, date, done: false, urgent: !!t.urgent, createdAt: base + i, doneAt: null, movedCount: 0, fromTask: t.title });
+  }, `Добавлено шагов: ${chosen.length}`);
+  if (!ok) return;
+  stepsFor = null; steps.delete(t.id);
+  if (st.dropOriginal) await removeTask(t); else renderTasks();
+}
+
+function taskRow(t, mode) {
+  const meta = el("span", { class: "meta" });
+  const stale = !t.done && (t.movedCount || 0) >= STALE_AFTER;
+  if (t.urgent) meta.append(el("span", { class: "chip hot" }, "срочно"));
+  if (t.recurringId) meta.append(el("span", { class: "chip rep", title: "Повторяющаяся задача" }, "↻"));
+  if (stale) meta.append(el("span", { class: "chip stale", title: "Переносилась слишком часто: разбей, сделай срочной или удали" }, `↷${t.movedCount} пора решить`));
+  else if (t.movedCount && !t.done) meta.append(el("span", { class: "chip moved", title: "Сколько раз переносилась" }, `↷${t.movedCount}`));
+  if (t.calStart) meta.append(el("span", { class: "chip cal", title: "Стоит в Google Календаре" }, `◷ ${hm(t.calStart)}–${hm(t.calEnd)}`));
+  if (mode === "overdue") meta.append(el("span", { class: "status" }, fmtDate(t.date)));
+  if (!t.done) {
+    if (stale && sample && !sampleOff) meta.append(el("button", { class: "icon-btn on", type: "button", "aria-expanded": stepsFor === t.id,
+      onclick: () => { if (stepsFor === t.id) { stepsFor = null; renderTasks(); } else splitTask(t); } }, "разбить на шаги"));
+    if (mcp && t.date && t.date >= TODAY) meta.append(el("button", { class: "icon-btn", type: "button", "aria-expanded": calFor === t.id,
+      onclick: () => { calFor = calFor === t.id ? null : t.id; renderTasks(); } }, t.calStart ? "время" : "в календарь"));
+    if (mode !== "overdue") meta.append(el("button", { class: "icon-btn" + (t.urgent ? " on" : ""), type: "button", title: t.urgent ? "Снять срочность" : "Пометить срочной",
+      "aria-label": t.urgent ? "Снять срочность" : "Пометить срочной", onclick: () => write(() => ref(t.id).update({ urgent: !t.urgent })) }, "!"));
+    if (t.date === TODAY) meta.append(el("button", { class: "icon-btn", type: "button", onclick: () => moveTask(t, TOMORROW) }, "→ завтра"));
+    else meta.append(el("button", { class: "icon-btn", type: "button", onclick: () => moveTask(t, TODAY) }, "← сегодня"));
+    meta.append(el("button", { class: "icon-btn", type: "button", "aria-expanded": pickerFor === t.id,
+      onclick: () => { pickerFor = pickerFor === t.id ? null : t.id; renderTasks(); } }, "дата"));
+  }
+  meta.append(el("button", { class: "icon-btn", type: "button", title: "Удалить", "aria-label": "Удалить задачу", onclick: () => removeTask(t) }, "×"));
+  const cb = el("input", { type: "checkbox", id: "cb-" + t.id, "aria-label": "Сделано", checked: t.done,
+    onchange: e => write(() => ref(t.id).update(e.target.checked
+      ? { done: true, doneAt: Date.now(), date: TODAY }      // сделанное засчитывается в сегодняшний день
+      : { done: false, doneAt: null })) });
+  const row = el("li", { class: "task" + (t.done ? " done" : "") + (stale ? " stale" : "") }, cb, el("label", { class: "t", for: "cb-" + t.id }, t.title), meta);
+  if (pickerFor === t.id) {
+    const d = el("input", { type: "date", class: "field", min: TODAY, value: t.date && t.date >= TODAY ? t.date : TOMORROW, "aria-label": "Новая дата" });
+    row.append(el("div", { class: "picker" }, d,
+      el("button", { class: "btn small", type: "button", onclick: () => { if (d.value) { pickerFor = null; moveTask(t, d.value); } } }, "Перенести"),
+      el("button", { class: "btn small", type: "button", onclick: () => { pickerFor = null; moveTask(t, LATER); } }, "Потом, без даты")));
+  }
+  if (!t.done && calFor === t.id && mcp && t.date && t.date >= TODAY) row.append(calPanel(t));
+  if (!t.done && stepsFor === t.id && sample) row.append(stepsPanel(t));
+  return row;
+}
+const group = (title, items, mode) => el("div", { class: "group" }, el("div", { class: "group-title" }, title), el("ul", { class: "tasks" }, items.map(t => taskRow(t, mode))));
+const emptyNote = text => el("div", { class: "empty" }, text);
+
+function renderTasks() {
+  const area = $("#taskArea");
+  if (view === "later") {
+    const parts = [];
+    const bl = backlog(), up = upcoming();
+    if (bl.length) parts.push(group("Без даты", bl, "later"));
+    const byDate = Map.groupBy ? Map.groupBy(up, t => t.date) : up.reduce((m, t) => m.set(t.date, [...(m.get(t.date) || []), t]), new Map());
+    for (const [d, items] of byDate) parts.push(group(fmtDay(d), items, "later"));
+    if (rules.size) parts.push(el("div", { class: "group" }, el("div", { class: "group-title" }, "Повторяющиеся"),
+      el("ul", { class: "tasks" }, [...rules.values()].sort((a, b) => a.createdAt - b.createdAt).map(r =>
+        el("li", { class: "task" }, el("span", { class: "chip rep" }, "↻"), el("span", { class: "t" }, r.title,
+          el("span", { class: "status" }, " · " + daysLabel(r.days || []))),
+          el("span", { class: "meta" }, el("button", { class: "icon-btn", type: "button", title: "Больше не повторять",
+            onclick: () => write(() => db.collection("recurring").doc(r.id).delete(), "Повтор отключён") }, "×")))))));
+    area.replaceChildren(...(parts.length ? parts : [emptyNote(db ? "Здесь живут задачи без даты, задачи на дальние дни и повторяющиеся." : "Задачи загружаются…")]));
+  } else {
+    const list = tasksFor(view === "today" ? TODAY : TOMORROW);
+    area.replaceChildren(list.length ? el("ul", { class: "tasks" }, list.map(t => taskRow(t, view)))
+      : emptyNote(!db ? "Задачи хранятся в вашем аккаунте claude.ai и появятся здесь после загрузки."
+        : view === "today" ? "На сегодня задач нет. Добавьте первую строкой выше." : "На завтра пока пусто."));
+  }
+  const movable = tasksFor(TODAY).filter(t => !t.done && !t.urgent);
+  $("#bulk").hidden = view !== "today" || movable.length === 0;
+  $("#moveNonUrgent").textContent = `Перенести несрочные на завтра (${movable.length})`;
+
+  const od = overdueTasks();
+  $("#overdue").hidden = view !== "today" || od.length === 0;
+  $("#overdueList").replaceChildren(...od.map(t => taskRow(t, "overdue")));
+  const lc = backlog().length + upcoming().length;
+  $("#laterCount").textContent = lc ? String(lc) : "";
+  renderHeader();
+  renderReport();
+  if (closing) renderCloseDay();
+}
+
+function setView(v) {
+  view = v; pickerFor = null;
+  for (const b of document.querySelectorAll(".tabs button")) b.setAttribute("aria-selected", b.dataset.view === v);
+  $("#newWhen").value = v; $("#newDate").hidden = true;
+  renderTasks();
+}
+for (const b of document.querySelectorAll(".tabs button")) b.addEventListener("click", () => setView(b.dataset.view));
+$("#newWhen").addEventListener("change", e => { $("#newDate").hidden = e.target.value !== "date"; if (!$("#newDate").value) $("#newDate").value = TOMORROW; });
+$("#newDate").min = TODAY;
+
+$("#addForm").addEventListener("submit", async e => {
+  e.preventDefault();
+  const title = $("#newTask").value.trim();
+  if (!title) return;
+  const when = $("#newWhen").value;
+  let date = when === "today" ? TODAY : when === "tomorrow" ? TOMORROW : when === "date" ? $("#newDate").value : LATER;
+  if (when === "date" && !date) { toast("Выберите дату"); return; }
+  const urgent = $("#newUrgent").checked, repeat = $("#newRepeat").value;
+  let ok;
+  if (repeat) {
+    const start = date || TODAY;
+    const days = REPEAT_DAYS[repeat] || [weekdayOf(start)];
+    const rid = db ? db.collection("recurring").doc().id : "";
+    ok = await write(async () => {
+      await db.collection("recurring").doc(rid).set({ title, urgent, days, createdAt: Date.now() });
+      if (days.includes(weekdayOf(start)))
+        await ref(`r-${rid}-${start}`).set({ title, date: start, done: false, urgent, createdAt: Date.now(), doneAt: null, movedCount: 0, recurringId: rid });
+    }, `Повтор: ${daysLabel(days)}`);
+  } else {
+    ok = await write(() => db.collection("tasks").add({ title, date, done: false, urgent, createdAt: Date.now(), doneAt: null, movedCount: 0 }));
+  }
+  if (ok) { $("#newTask").value = ""; $("#newUrgent").checked = false; $("#newRepeat").value = ""; }
+});
+
+async function moveMany(list, date) { for (const t of list) await moveTask(t, date); }
+$("#moveNonUrgent").addEventListener("click", async () => {
+  const list = tasksFor(TODAY).filter(t => !t.done && !t.urgent);
+  await moveMany(list, TOMORROW);
+  toast(`Перенесено на завтра: ${list.length}`);
+});
+$("#pullAll").addEventListener("click", async () => { const list = overdueTasks(); await moveMany(list, TODAY); toast(`На сегодня: ${list.length}`); });
+
+/* ---------- recurring: today's copies ---------- */
+const ensuring = new Set();
+async function ensureRecurring() {
+  if (!db || !recentLoaded) return;
+  const wd = now.getDay();
+  for (const r of rules.values()) {
+    if (!(r.days || []).includes(wd) || ensuring.has(r.id)) continue;
+    const id = `r-${r.id}-${TODAY}`;
+    if (taskMap.has(id) || live().some(t => t.recurringId === r.id && t.date === TODAY)) continue;
+    ensuring.add(r.id);
+    await write(() => ref(id).set({ title: r.title, date: TODAY, done: false, urgent: !!r.urgent, createdAt: Date.now(), doneAt: null, movedCount: 0, recurringId: r.id }));
+  }
+}
+
+/* ---------- end of day ---------- */
+function renderCloseDay() {
+  const open = tasksFor(TODAY).filter(t => !t.done), done = tasksFor(TODAY).filter(t => t.done);
+  const body = $("#closeDayBody");
+  const parts = [el("div", {}, `Сделано ${done.length} из ${done.length + open.length}.`)];
+  if (open.length) {
+    parts.push(el("div", { class: "status" }, "Отмеченные задачи перейдут на завтра:"));
+    for (const t of open) {
+      const prev = body.querySelector(`#mv-${CSS.escape(t.id)}`);
+      parts.push(el("label", {}, el("input", { type: "checkbox", id: "mv-" + t.id, "data-id": t.id,
+        checked: prev ? prev.checked : !t.urgent && !t.recurringId }), t.title, t.urgent ? el("span", { class: "chip hot" }, "срочно") : null));
+    }
+  }
+  body.replaceChildren(...parts);
+}
+$("#endDayBtn").addEventListener("click", () => { closing = true; $("#closeDay").hidden = false; renderCloseDay(); renderHeader(); });
+$("#cancelClose").addEventListener("click", () => { closing = false; $("#closeDay").hidden = true; renderHeader(); });
+$("#confirmClose").addEventListener("click", async () => {
+  const all = tasksFor(TODAY);
+  const ids = new Set([...document.querySelectorAll("#closeDayBody input:checked")].map(i => i.dataset.id));
+  const moved = all.filter(t => ids.has(t.id));
+  await moveMany(moved, TOMORROW);
+  const ok = await write(() => db.collection("days").doc(TODAY).set({
+    date: TODAY, closedAt: Date.now(), source: "button",
+    done: all.filter(t => t.done).map(t => t.title),
+    open: all.filter(t => !t.done && !ids.has(t.id)).map(t => t.title),
+    moved: moved.map(t => t.title) }), `День закрыт. Хорошего вечера, ${NAME}!`);
+  if (ok) { closing = false; $("#closeDay").hidden = true; }
+});
+
+function reportNode(d, withReopen) {
+  const n = (d.done || []).length, total = n + (d.open || []).length + (d.moved || []).length;
+  const kids = [el("div", {}, el("b", {}, `Сделано ${n} из ${total}`),
+    d.source === "auto" ? el("span", { class: "muted" }, " · день закрыт автоматически утром") : el("span", { class: "muted" }, ` · закрыт в ${fmtTime(d.closedAt)}`))];
+  if ((d.done || []).length) kids.push(el("div", {}, el("span", { class: "muted" }, "Готово: "), d.done.join(" · ")));
+  if ((d.moved || []).length) kids.push(el("div", {}, el("span", { class: "muted" }, "Перенесено: "), d.moved.join(" · ")));
+  if ((d.open || []).length) kids.push(el("div", {}, el("span", { class: "muted" }, "Осталось: "), d.open.join(" · ")));
+  if (d.note) kids.push(el("div", { class: "muted" }, d.note));
+  if (withReopen) kids.push(el("div", {}, el("button", { class: "icon-btn", type: "button",
+    onclick: () => write(() => db.collection("days").doc(TODAY).delete(), "День снова открыт") }, "Открыть день снова")));
+  return kids;
+}
+function renderReport() {
+  const box = $("#todayReport");
+  box.hidden = !dayToday?.closedAt || view !== "today";
+  if (!box.hidden) box.replaceChildren(el("h3", {}, "Вечерний отчёт"), ...reportNode(dayToday, true));
+}
+
+/* ---------- brief ---------- */
+function renderBrief() {
+  const b = brief;
+  $("#briefStamp").textContent = b?.generatedAt ? `обновлено в ${fmtTime(b.generatedAt)}` : "";
+
+  const y = dayYesterday;
+  const yTotal = y ? [...(y.done || []), ...(y.open || []), ...(y.moved || [])].length : 0;
+  $("#yesterdaySec").hidden = !y || (yTotal === 0 && !y.note);
+  if (y) { $("#yStatus").textContent = fmtDate(YESTERDAY); $("#yBody").replaceChildren(el("div", { class: "report" }, ...reportNode(y, false))); }
+
+  $("#summary").textContent = b?.summary ||
+    (now.getHours() < 9 ? "Утренняя сводка собирается каждый день в 8:30." : "Сегодняшней сводки ещё нет. Она собирается каждый день в 8:30, пока Claude открыт на компьютере.");
+
+  const src = (key, statusEl, listEl, items, make, notConnected) => {
+    const st = b?.sources?.[key];
+    if (st === "ok") {
+      $(statusEl).textContent = items?.length ? "" : "пусто";
+      $(listEl).replaceChildren(...(items?.length ? items.map(make) : [el("li", { class: "status wide" }, key === "calendar" ? "Встреч нет" : "Ничего нового")]));
+    } else {
+      $(statusEl).textContent = st === "error" ? "ошибка" : st ? "" : "ждёт сводку";
+      $(listEl).replaceChildren(el("li", { class: "wide" }, el("div", { class: "hint" }, ...notConnected(st))));
+    }
+  };
+  src("calendar", "#calStatus", "#calList", b?.calendar,
+    e => el("li", {}, el("span", { class: "time" }, e.time || "весь день"), el("span", {}, e.title)),
+    st => st === "not_connected" ? ["Подключите ", el("b", {}, "Google Календарь"), " в claude.ai → Настройки → Коннекторы."] : ["События на сегодня появятся после утренней сводки."]);
+  src("mail", "#mailStatus", "#mailList", b?.mail,
+    (m, i) => {
+      const key = `${TODAY}:${i}`;
+      return el("li", {}, el("div", {}, el("b", {}, m.from), " — ", m.subject, m.note ? el("div", { class: "status" }, m.note) : null),
+        el("button", { class: "icon-btn", type: "button", disabled: mailAdded.has(key), onclick: async e => {
+          const ok = await write(() => db.collection("tasks").add({ title: m.note || `${m.subject} (${m.from})`, date: TODAY, done: false, urgent: false,
+            createdAt: Date.now(), doneAt: null, movedCount: 0, fromMail: `${m.from}: ${m.subject}` }), "Письмо добавлено в задачи");
+          if (ok) { mailAdded.add(key); e.target.disabled = true; e.target.textContent = "в задачах"; }
+        } }, mailAdded.has(key) ? "в задачах" : "в задачи"));
+    },
+    st => st === "not_connected" ? ["Подключите ", el("b", {}, "Gmail"), " в claude.ai → Настройки → Коннекторы."] : ["Важные письма появятся после утренней сводки."]);
+  src("telegram", "#tgStatus", "#tgList", b?.telegram,
+    (t, i) => {
+      const key = `${TODAY}:${i}`;
+      const counts = [t.unread ? `непрочитанных: ${t.unread}` : "", t.mentions ? `упоминаний: ${t.mentions}` : ""].filter(Boolean).join(" · ");
+      return el("li", {}, el("div", {}, el("b", {}, t.chat), counts ? el("span", { class: "status" }, " · " + counts) : null, t.note ? el("div", { class: "status" }, t.note) : null),
+        t.note ? el("button", { class: "icon-btn", type: "button", disabled: tgAdded.has(key), onclick: async e => {
+          const ok = await write(() => db.collection("tasks").add({ title: t.note, date: TODAY, done: false, urgent: false,
+            createdAt: Date.now(), doneAt: null, movedCount: 0, fromTelegram: t.chat }), "Добавлено в задачи");
+          if (ok) { tgAdded.add(key); e.target.disabled = true; e.target.textContent = "в задачах"; }
+        } }, tgAdded.has(key) ? "в задачах" : "в задачи") : el("span"));
+    },
+    st => st === "not_connected" ? ["Telegram не подключён: нужен вход через ", el("b", {}, "telegram_digest.py login"), "."] : st === "error" ? ["Не удалось прочитать Telegram или файл блокировок. Чаты не показаны."] : ["Непрочитанные чаты появятся после утренней сводки."]);
+  src("github", "#ghStatus", "#ghList", b?.github,
+    g => el("li", {}, el("b", {}, g.title), g.detail ? el("span", { class: "status" }, " · " + g.detail) : null),
+    st => st === "not_connected" ? ["GitHub недоступен: войдите через ", el("b", {}, "gh auth login"), "."] : ["Активность по репозиториям появится после утренней сводки."]);
+
+  for (const [r, sec, stamp, text] of [[weekReview, "#weekSec", "#weekStamp", "#weekText"], [monthReview, "#monthSec", "#monthStamp", "#monthText"]]) {
+    $(sec).hidden = !r;
+    if (r) { $(stamp).textContent = r.period || ""; $(text).textContent = r.text || ""; }
+  }
+}
+
+/* ---------- boot ---------- */
+renderHeader(); renderTasks(); renderBrief();
+window.claude?.use?.("mcp").then(m => { mcp = m; renderTasks(); }).catch(() => {});
+window.claude?.use?.("sample").then(s => { sample = s; renderTasks(); }).catch(() => {});
+(async () => {
+  db = await window.claude?.use?.("db") ?? null;
+  if (!db) { renderTasks(); return; }
+  // two non-overlapping queries: recent and future tasks, and unfinished older ones (backlog included)
+  const merge = (snap, scope) => {
+    for (const [id, t] of taskMap) if (t._scope === scope) taskMap.delete(id);
+    for (const d of snap.docs) taskMap.set(d.id, { ...d.data(), id: d.id, _scope: scope });
+    if (scope === "recent" && !snap.metadata.fromCache) recentLoaded = true;
+    renderTasks(); ensureRecurring();
+  };
+  const fail = () => toast("Связь с хранилищем потеряна, обновите страницу");
+  db.collection("tasks").where("date", ">=", RECENT_FROM).onSnapshot(s => merge(s, "recent"), fail);
+  db.collection("tasks").where("done", "==", false).where("date", "<", RECENT_FROM).onSnapshot(s => merge(s, "old"), fail);
+  db.collection("recurring").onSnapshot(s => {
+    rules.clear(); for (const d of s.docs) rules.set(d.id, { ...d.data(), id: d.id });
+    renderTasks(); ensureRecurring();
+  }, fail);
+  db.collection("days").doc(TODAY).onSnapshot(s => { dayToday = s.exists ? s.data() : null; renderTasks(); }, fail);
+  db.collection("days").doc(YESTERDAY).onSnapshot(s => { dayYesterday = s.exists ? s.data() : null; renderBrief(); }, fail);
+  db.collection("briefs").doc(TODAY).onSnapshot(s => { brief = s.exists ? s.data() : null; renderBrief(); }, fail);
+  db.collection("reviews").where("type", "==", "week").orderBy("createdAt", "desc").limit(1)
+    .onSnapshot(s => { weekReview = s.docs[0]?.data() || null; renderBrief(); }, fail);
+  db.collection("reviews").where("type", "==", "month").orderBy("createdAt", "desc").limit(1)
+    .onSnapshot(s => { monthReview = s.docs[0]?.data() || null; renderBrief(); }, fail);
+})();
+</script>
+

@@ -8,7 +8,10 @@ GitHub, close forgotten days and write weekly and monthly reviews.
 
 The page is a [Claude artifact](https://claude.ai): its storage, connectors and model calls
 come from the artifact runtime (`window.claude.use(...)`), so there is no backend to host.
-Opened outside claude.ai, the page renders but cannot load or save data.
+Opened outside claude.ai (locally or with `#demo` in the address), the page switches to a
+demo mode with made-up data kept in memory, so it can be tried without an account.
+
+![Dashboard in demo mode](docs/screenshot.png)
 
 ## What it does
 
@@ -23,6 +26,13 @@ Opened outside claude.ai, the page renders but cannot load or save data.
 - **Morning brief.** A short summary with calendar, mail, Telegram and GitHub sections; an
   item that needs action can become a task in one click.
 - **Reviews.** Short weekly and monthly results, plus push reminders.
+- **Main task of the day.** One task marked with a star is pinned at the top in large type.
+- **Rhythm.** A streak of days with finished tasks, tasks done over the week, the share of
+  tasks that get postponed, and a bar chart for the last seven days.
+- **Study.** Course modules with deadlines and progress; a module that is due soon is
+  highlighted and can be added to today's tasks in one click.
+- **No personal data in the code.** The user's name and course are set on the page and kept
+  in the artifact database.
 
 ## Architecture
 
@@ -78,6 +88,14 @@ uv run telegram_digest.py block-private on
 
 `login` asks for `api_id` and `api_hash` from [my.telegram.org](https://my.telegram.org)
 and for a login code. Enter them only in your own terminal.
+
+## Demo
+
+```bash
+python -m http.server 8000
+```
+
+Then open `http://localhost:8000/`. Nothing is saved: a page reload restores the demo data.
 
 ## Tests
 

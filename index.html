@@ -1,3 +1,6 @@
+<!DOCTYPE html>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
 <title>Пульт дня</title>
 <meta name="claude:viewport-fit-sides" content="cover">
 <link rel="preconnect" href="https://fonts.googleapis.com">
@@ -22,6 +25,7 @@
   --ok: #5cc48a; --ok-soft: #173225; --hot: #f07474; --hot-soft: #3a1c1f; color-scheme: dark }
 
 * { box-sizing: border-box }
+[hidden] { display: none !important }
 body { background: var(--bg); color: var(--fg); font: 15px/1.5 var(--f-body); }
 .wrap { max-width: 1120px; margin: 0 auto; padding-block: 28px 48px;
   padding-left: max(16px, env(safe-area-inset-left, 0px)); padding-right: max(16px, env(safe-area-inset-right, 0px));
@@ -118,6 +122,39 @@ ul.tasks { list-style: none; margin: 0; padding: 0; display: grid; gap: 2px }
 .hint b { color: var(--fg); font-weight: 600 }
 .review { border-left: 3px solid var(--dusk); padding: 2px 0 2px 12px; font-size: 14px; white-space: pre-line }
 
+/* главная задача дня */
+.focus { border: 1px solid var(--accent); background: var(--accent-soft); border-radius: 16px; padding: 16px 20px; display: flex; align-items: center; gap: 14px; flex-wrap: wrap }
+.focus .eyebrow { color: var(--accent) }
+.focus input[type=checkbox] { flex: none; width: 22px; height: 22px; accent-color: var(--ok); margin: 0 }
+.focus-body { flex: 1 1 16em; display: grid; gap: 6px; min-width: 0 }
+.focus-title { font: 600 clamp(18px, 2.2vw, 24px)/1.25 var(--f-display); overflow-wrap: anywhere; cursor: pointer }
+.focus.done .focus-title { color: var(--muted); text-decoration: line-through }
+.focus.unset { border-style: dashed; background: var(--surface) }
+.focus-hint { color: var(--muted); font-size: 14px }
+.icon-btn.star { font-size: 15px; line-height: 1 }
+.icon-btn.star.on { color: var(--accent) }
+
+.demo-bar { background: var(--dusk-soft); color: var(--dusk); border-radius: 12px; padding: 10px 14px; font-size: 14px }
+.settings { display: flex; gap: 10px; flex-wrap: wrap; align-items: center; padding: 14px 20px }
+.settings label { display: flex; gap: 8px; align-items: center; font-size: 14px; color: var(--muted) }
+.field.grow { flex: 1 1 200px; min-width: 0; padding: 7px 10px; font-size: 14px }
+
+/* ритм и учёба */
+.row2 { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 24px; align-items: start }
+@media (max-width: 860px) { .row2 { grid-template-columns: minmax(0, 1fr) } }
+.kpis { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 10px }
+.kpi { background: var(--bg); border-radius: 12px; padding: 10px 12px; display: grid; gap: 2px; min-width: 0; align-content: start }
+.kpi b { font: 700 24px/1.1 var(--f-display); font-variant-numeric: tabular-nums }
+.kpi span { font-size: 12px; color: var(--muted); line-height: 1.3 }
+.bars { display: grid; grid-template-columns: repeat(7, minmax(0, 1fr)); gap: 8px; height: 130px }
+.bar { display: flex; flex-direction: column; align-items: center; gap: 4px; min-height: 0; font: 500 11px var(--f-mono); color: var(--muted); font-variant-numeric: tabular-nums }
+.bar .col { flex: 1; width: 100%; display: flex; align-items: flex-end; justify-content: center; min-height: 0 }
+.bar .col i { width: 70%; max-width: 38px; min-height: 3px; background: var(--ok); border-radius: 6px 6px 2px 2px }
+.bar.today .col i { background: var(--accent) }
+.bar.today { color: var(--fg) }
+.study-progress { display: flex; align-items: center; gap: 10px }
+.meter { flex: 1; height: 8px; background: var(--bg); border-radius: 99px; overflow: hidden }
+.meter i { display: block; height: 100%; background: var(--ok); border-radius: 99px }
 .soon { display: grid; grid-template-columns: repeat(auto-fit, minmax(190px, 1fr)); gap: 10px }
 .soon div { border: 1px dashed var(--line); border-radius: 12px; padding: 12px 14px; font-size: 14px; color: var(--muted) }
 .soon b { display: block; color: var(--fg); font-weight: 600; margin-bottom: 2px }
@@ -135,9 +172,21 @@ ul.tasks { list-style: none; margin: 0; padding: 0; display: grid; gap: 2px }
     <div class="daybar">
       <span class="progress" id="progress"></span>
       <button class="btn primary" id="endDayBtn" type="button">Закончил работу</button>
+      <button class="btn" id="settingsBtn" type="button" title="Настройки" aria-label="Настройки" aria-expanded="false">⚙</button>
     </div>
   </header>
 
+  <div class="demo-bar" id="demoBar" hidden>Демо-режим: все данные выдуманные и живут только в этой вкладке. После обновления страницы всё вернётся как было.</div>
+
+  <form class="panel settings" id="settings" hidden autocomplete="off">
+    <label>Как обращаться <input type="text" class="field" id="setName" maxlength="40"></label>
+    <label>Курс <input type="text" class="field" id="setCourse" maxlength="80"></label>
+    <button class="btn small primary" type="submit">Сохранить</button>
+    <button class="btn small" type="button" id="settingsCancel">Отмена</button>
+    <span class="status">Хранится в твоём аккаунте claude.ai, в коде пульта этого нет.</span>
+  </form>
+
+  <div class="focus" id="focus" hidden></div>
   <div class="grid">
     <section class="panel" aria-labelledby="tasksTitle">
       <div class="panel-head">
@@ -242,6 +291,23 @@ ul.tasks { list-style: none; margin: 0; padding: 0; display: grid; gap: 2px }
     </section>
   </div>
 
+  <div class="row2">
+    <section class="panel" aria-labelledby="statsTitle">
+      <div class="panel-head"><h2 id="statsTitle">Ритм</h2><span class="status">последние 7 дней</span></div>
+      <div class="kpis" id="kpis"></div>
+      <div class="bars" id="bars" role="img"></div>
+    </section>
+    <section class="panel" aria-labelledby="studyTitle">
+      <div class="panel-head"><h2 id="studyTitle">Учёба</h2><span class="status" id="studyCourse"></span></div>
+      <div class="study-progress" id="studyProgress" hidden></div>
+      <div id="studyArea"></div>
+      <form class="add-row" id="studyForm" autocomplete="off">
+        <input type="text" class="field grow" id="studyTitleIn" placeholder="Модуль или задание…" aria-label="Модуль или задание">
+        <input type="date" class="field" id="studyDate" aria-label="Дедлайн">
+        <button class="btn small" type="submit">Добавить</button>
+      </form>
+    </section>
+  </div>
   <section class="panel" aria-labelledby="soonTitle">
     <div class="panel-head"><h2 id="soonTitle">Скоро на пульте</h2><span class="status">запланировано, ещё не подключено</span></div>
     <div class="soon">
@@ -254,7 +320,6 @@ ul.tasks { list-style: none; margin: 0; padding: 0; display: grid; gap: 2px }
 <div class="toast" id="toast" hidden></div>
 
 <script>
-const NAME = "<NAME>";
 const STALE_AFTER = 3;              // столько переносов — и задача подсвечивается
 const $ = s => document.querySelector(s);
 const pad = n => String(n).padStart(2, "0");
@@ -271,6 +336,11 @@ let db = null, view = "today", closing = false, pickerFor = null, recentLoaded =
 const taskMap = new Map();          // id -> task, merged from two subscriptions
 const rules = new Map();            // повторяющиеся задачи
 let dayToday = null, dayYesterday = null, brief = null, weekReview = null, monthReview = null;
+let profile = {};                   // settings/profile: {name, course}; имя в коде не хранится
+const daysHist = new Map();         // date -> days/{date} за последние 60 дней
+const study = new Map();            // id -> модуль курса
+const userName = () => (profile.name || "").trim();
+const withName = s => userName() ? `${s}, ${userName()}` : s;
 const mailAdded = new Set();
 const tgAdded = new Set();
 
@@ -333,8 +403,8 @@ const daysLabel = days => days.length === 7 ? "каждый день" : days.joi
 /* ---------- header ---------- */
 function renderHeader() {
   $("#dateLine").textContent = now.toLocaleDateString("ru-RU", { weekday: "long", day: "numeric", month: "long" });
-  const h = now.getHours();
-  $("#greeting").textContent = (h < 5 ? "Доброй ночи" : h < 12 ? "Доброе утро" : h < 18 ? "Добрый день" : "Добрый вечер") + ", " + NAME;
+  const h = DEMO ? 9 : now.getHours();   // демо всегда утром, в тон сводке
+  $("#greeting").textContent = withName(h < 5 ? "Доброй ночи" : h < 12 ? "Доброе утро" : h < 18 ? "Добрый день" : "Добрый вечер");
   const list = tasksFor(TODAY), done = list.filter(t => t.done).length;
   $("#progress").textContent = list.length ? `${done} из ${list.length} сделано` : "";
   const closed = !!dayToday?.closedAt;
@@ -483,6 +553,37 @@ async function addSteps(t, st, date) {
   if (st.dropOriginal) await removeTask(t); else renderTasks();
 }
 
+const setDone = (t, on) => write(() => ref(t.id).update(on
+  ? { done: true, doneAt: Date.now(), date: TODAY }      // сделанное засчитывается в сегодняшний день
+  : { done: false, doneAt: null }));
+
+/* главная задача дня: поле focus = дата, на которую задача главная */
+const focusTask = () => tasksFor(TODAY).find(t => t.focus === TODAY);
+async function setFocus(t) {
+  const on = t.focus !== TODAY;
+  await write(async () => {
+    for (const x of live().filter(x => x.focus === TODAY && x.id !== t.id)) await ref(x.id).update({ focus: null });
+    await ref(t.id).update({ focus: on ? TODAY : null });
+  }, on ? "Это главное на сегодня" : null);
+}
+function renderFocus() {
+  const box = $("#focus"), f = focusTask();
+  const open = tasksFor(TODAY).filter(t => !t.done);
+  box.hidden = !f && (!open.length || !!dayToday?.closedAt);
+  if (box.hidden) return;
+  box.classList.toggle("done", !!f?.done);
+  box.classList.toggle("unset", !f);
+  if (!f) {
+    box.replaceChildren(el("div", { class: "focus-body" }, el("span", { class: "eyebrow" }, "Главное на сегодня"),
+      el("span", { class: "focus-hint" }, "Не выбрано. Нажми ☆ у задачи, которую надо сделать в любом случае.")));
+    return;
+  }
+  box.replaceChildren(
+    el("input", { type: "checkbox", id: "focusCb", checked: f.done, "aria-label": "Главная задача сделана", onchange: e => setDone(f, e.target.checked) }),
+    el("div", { class: "focus-body" }, el("span", { class: "eyebrow" }, f.done ? "Главное на сегодня сделано, остальное бонус" : "Главное на сегодня"),
+      el("label", { class: "focus-title", for: "focusCb" }, f.title)),
+    el("button", { class: "icon-btn", type: "button", onclick: () => setFocus(f) }, "снять"));
+}
 function taskRow(t, mode) {
   const meta = el("span", { class: "meta" });
   const stale = !t.done && (t.movedCount || 0) >= STALE_AFTER;
@@ -497,6 +598,12 @@ function taskRow(t, mode) {
       onclick: () => { if (stepsFor === t.id) { stepsFor = null; renderTasks(); } else splitTask(t); } }, "разбить на шаги"));
     if (mcp && t.date && t.date >= TODAY) meta.append(el("button", { class: "icon-btn", type: "button", "aria-expanded": calFor === t.id,
       onclick: () => { calFor = calFor === t.id ? null : t.id; renderTasks(); } }, t.calStart ? "время" : "в календарь"));
+    if (t.date === TODAY && mode !== "overdue") {
+      const on = t.focus === TODAY;
+      meta.append(el("button", { class: "icon-btn star" + (on ? " on" : ""), type: "button", "aria-pressed": on,
+        title: on ? "Больше не главное" : "Сделать главным на сегодня", "aria-label": on ? "Больше не главное" : "Сделать главным на сегодня",
+        onclick: () => setFocus(t) }, on ? "★" : "☆"));
+    }
     if (mode !== "overdue") meta.append(el("button", { class: "icon-btn" + (t.urgent ? " on" : ""), type: "button", title: t.urgent ? "Снять срочность" : "Пометить срочной",
       "aria-label": t.urgent ? "Снять срочность" : "Пометить срочной", onclick: () => write(() => ref(t.id).update({ urgent: !t.urgent })) }, "!"));
     if (t.date === TODAY) meta.append(el("button", { class: "icon-btn", type: "button", onclick: () => moveTask(t, TOMORROW) }, "→ завтра"));
@@ -506,9 +613,7 @@ function taskRow(t, mode) {
   }
   meta.append(el("button", { class: "icon-btn", type: "button", title: "Удалить", "aria-label": "Удалить задачу", onclick: () => removeTask(t) }, "×"));
   const cb = el("input", { type: "checkbox", id: "cb-" + t.id, "aria-label": "Сделано", checked: t.done,
-    onchange: e => write(() => ref(t.id).update(e.target.checked
-      ? { done: true, doneAt: Date.now(), date: TODAY }      // сделанное засчитывается в сегодняшний день
-      : { done: false, doneAt: null })) });
+    onchange: e => setDone(t, e.target.checked) });
   const row = el("li", { class: "task" + (t.done ? " done" : "") + (stale ? " stale" : "") }, cb, el("label", { class: "t", for: "cb-" + t.id }, t.title), meta);
   if (pickerFor === t.id) {
     const d = el("input", { type: "date", class: "field", min: TODAY, value: t.date && t.date >= TODAY ? t.date : TOMORROW, "aria-label": "Новая дата" });
@@ -554,9 +659,95 @@ function renderTasks() {
   const lc = backlog().length + upcoming().length;
   $("#laterCount").textContent = lc ? String(lc) : "";
   renderHeader();
+  renderFocus();
   renderReport();
+  renderStats();
+  renderStudy();
   if (closing) renderCloseDay();
 }
+/* ---------- ритм: серия и неделя ---------- */
+const plural = (n, [one, few, many]) => { const a = n % 10, b = n % 100; return a === 1 && b !== 11 ? one : a >= 2 && a <= 4 && (b < 12 || b > 14) ? few : many; };
+function doneOn(d) {
+  const fromTasks = live().filter(t => t.done && t.date === d).length;
+  return d === TODAY ? fromTasks : Math.max(fromTasks, (daysHist.get(d)?.done || []).length);
+}
+function renderStats() {
+  const week = Array.from({ length: 7 }, (_, i) => iso(shift(now, i - 6)));
+  const counts = week.map(doneOn), max = Math.max(1, ...counts);
+  let streak = 0;
+  for (let d = doneOn(TODAY) ? now : shift(now, -1); streak < 400 && doneOn(iso(d)) > 0; d = shift(d, -1)) streak++;
+  const closed = week.slice(0, 6).map(d => daysHist.get(d)).filter(d => d?.closedAt);
+  const sum = k => closed.reduce((s, d) => s + (d[k] || []).length, 0);
+  const total = sum("done") + sum("open") + sum("moved");
+  const movedPct = total ? Math.round(sum("moved") / total * 100) : null;
+  const weekDone = counts.reduce((a, b) => a + b, 0);
+  $("#kpis").replaceChildren(
+    el("div", { class: "kpi" }, el("b", {}, String(streak)), el("span", {}, `${plural(streak, ["день", "дня", "дней"])} подряд со сделанными задачами`)),
+    el("div", { class: "kpi" }, el("b", {}, String(weekDone)), el("span", {}, `${plural(weekDone, ["задача сделана", "задачи сделано", "задач сделано"])} за неделю`)),
+    el("div", { class: "kpi" }, el("b", {}, movedPct == null ? "—" : movedPct + "%"), el("span", {}, "задач уходит на перенос")));
+  $("#bars").setAttribute("aria-label", "Сделано по дням: " + week.map((d, i) => `${WD[weekdayOf(d)]} ${counts[i]}`).join(", "));
+  $("#bars").replaceChildren(...week.map((d, i) => el("div", { class: "bar" + (d === TODAY ? " today" : ""), title: `${fmtDay(d)}: ${counts[i]}` },
+    el("span", {}, String(counts[i])),
+    el("div", { class: "col" }, el("i", { style: `height:${Math.round(counts[i] / max * 100)}%` })),
+    el("span", {}, d === TODAY ? "сег" : WD[weekdayOf(d)]))));
+}
+
+/* ---------- учёба: модули курса и дедлайны ---------- */
+const daysTo = d => Math.round((new Date(d + "T12:00:00") - new Date(TODAY + "T12:00:00")) / 864e5);
+function deadlineChip(m) {
+  if (!m.deadline) return null;
+  if (m.done) return el("span", { class: "status" }, fmtDate(m.deadline));
+  const n = daysTo(m.deadline);
+  const [cls, txt] = n < 0 ? ["stale", `просрочено на ${-n} дн.`] : n === 0 ? ["hot", "сегодня"] : n === 1 ? ["hot", "завтра"]
+    : n <= 3 ? ["hot", `через ${n} дн.`] : n <= 7 ? ["moved", `через ${n} дн.`] : ["cal", fmtDate(m.deadline)];
+  return el("span", { class: "chip " + cls, title: "Дедлайн: " + fmtDate(m.deadline) }, txt);
+}
+const studyRef = id => db.collection("study").doc(id);
+function renderStudy() {
+  $("#studyCourse").textContent = profile.course || "";
+  const list = [...study.values()].sort((a, b) => (a.done - b.done) || (a.deadline || "9999").localeCompare(b.deadline || "9999") || (a.createdAt || 0) - (b.createdAt || 0));
+  const done = list.filter(m => m.done).length;
+  $("#studyProgress").hidden = !list.length;
+  if (list.length) $("#studyProgress").replaceChildren(el("div", { class: "meter" }, el("i", { style: `width:${Math.round(done / list.length * 100)}%` })),
+    el("span", { class: "status" }, `готово ${done} из ${list.length}`));
+  if (!list.length) { $("#studyArea").replaceChildren(emptyNote(db ? "Добавь модули курса с дедлайнами: пульт подсветит те, что горят." : "Модули загружаются…")); return; }
+  $("#studyArea").replaceChildren(el("ul", { class: "tasks" }, list.map(m => {
+    const meta = el("span", { class: "meta" }, deadlineChip(m));
+    if (!m.done) {
+      const inTasks = live().some(t => t.fromStudy === m.id && !t.done);
+      meta.append(el("button", { class: "icon-btn", type: "button", disabled: inTasks, onclick: () => write(() => db.collection("tasks").add({
+        title: `Учёба: ${m.title}`, date: TODAY, done: false, urgent: !!m.deadline && daysTo(m.deadline) <= 1,
+        createdAt: Date.now(), doneAt: null, movedCount: 0, fromStudy: m.id }), "Добавлено на сегодня") }, inTasks ? "в задачах" : "на сегодня"));
+    }
+    meta.append(el("button", { class: "icon-btn", type: "button", title: "Удалить", "aria-label": "Удалить модуль", onclick: () => write(() => studyRef(m.id).delete()) }, "×"));
+    return el("li", { class: "task" + (m.done ? " done" : "") },
+      el("input", { type: "checkbox", id: "st-" + m.id, "aria-label": "Модуль пройден", checked: m.done,
+        onchange: e => write(() => studyRef(m.id).update({ done: e.target.checked, doneAt: e.target.checked ? Date.now() : null })) }),
+      el("label", { class: "t", for: "st-" + m.id }, m.title), meta);
+  })));
+}
+$("#studyForm").addEventListener("submit", async e => {
+  e.preventDefault();
+  const title = $("#studyTitleIn").value.trim();
+  if (!title) return;
+  const ok = await write(() => db.collection("study").add({ title, deadline: $("#studyDate").value || "", done: false, doneAt: null, createdAt: Date.now() }));
+  if (ok) { $("#studyTitleIn").value = ""; $("#studyDate").value = ""; }
+});
+
+/* ---------- настройки: имя и курс ---------- */
+function toggleSettings(open) {
+  $("#settings").hidden = !open;
+  $("#settingsBtn").setAttribute("aria-expanded", open);
+  if (open) { $("#setName").value = profile.name || ""; $("#setCourse").value = profile.course || ""; $("#setName").focus(); }
+}
+$("#settingsBtn").addEventListener("click", () => toggleSettings($("#settings").hidden));
+$("#settingsCancel").addEventListener("click", () => toggleSettings(false));
+$("#settings").addEventListener("submit", async e => {
+  e.preventDefault();
+  const ok = await write(() => db.collection("settings").doc("profile").set({ name: $("#setName").value.trim(), course: $("#setCourse").value.trim() }), "Сохранено");
+  if (ok) toggleSettings(false);
+});
+
 
 function setView(v) {
   view = v; pickerFor = null;
@@ -640,7 +831,7 @@ $("#confirmClose").addEventListener("click", async () => {
     date: TODAY, closedAt: Date.now(), source: "button",
     done: all.filter(t => t.done).map(t => t.title),
     open: all.filter(t => !t.done && !ids.has(t.id)).map(t => t.title),
-    moved: moved.map(t => t.title) }), `День закрыт. Хорошего вечера, ${NAME}!`);
+    moved: moved.map(t => t.title) }), withName("День закрыт. Хорошего вечера") + "!");
   if (ok) { closing = false; $("#closeDay").hidden = true; }
 });
 
@@ -721,12 +912,98 @@ function renderBrief() {
   }
 }
 
+/* ---------- демо-режим: выдуманные данные в памяти вкладки ---------- */
+// Включается при локальном запуске, на GitHub Pages или по адресу с #demo. Ничего никуда не отправляет.
+const DEMO = /demo/.test(location.hash) || location.protocol === "file:" || /^(localhost|127\.0\.0\.1)$|\.github\.io$/.test(location.hostname);
+function memoryDb(seed) {
+  const store = new Map(), listeners = new Set();
+  const col = c => store.get(c) || store.set(c, new Map()).get(c);
+  for (const [c, docs] of Object.entries(seed)) for (const [id, d] of Object.entries(docs)) col(c).set(id, structuredClone(d));
+  let n = 0;
+  const newId = () => `demo-${++n}-${Math.random().toString(36).slice(2, 6)}`;
+  const notify = () => queueMicrotask(() => { for (const l of [...listeners]) l(); });
+  const snap = (c, id) => { const d = col(c).get(id); return { id, exists: !!d, data: () => d && structuredClone(d) }; };
+  const ops = { "==": (a, b) => a === b, ">=": (a, b) => a >= b, "<": (a, b) => a < b, ">": (a, b) => a > b, "<=": (a, b) => a <= b };
+  const listen = l => { listeners.add(l); l(); return () => listeners.delete(l); };
+  const docRef = (c, id) => ({
+    id,
+    async set(d) { col(c).set(id, structuredClone(d)); notify(); },
+    async update(p) { const cur = col(c).get(id); if (!cur) throw { code: "not_found" }; col(c).set(id, { ...cur, ...structuredClone(p) }); notify(); },
+    async delete() { col(c).delete(id); notify(); },
+    onSnapshot: cb => listen(() => cb(snap(c, id))),
+  });
+  const query = (c, filters = [], order = null, lim = Infinity) => ({
+    where: (f, op, v) => query(c, [...filters, [f, op, v]], order, lim),
+    orderBy: (f, dir = "asc") => query(c, filters, [f, dir], lim),
+    limit: k => query(c, filters, order, k),
+    doc: id => docRef(c, id ?? newId()),
+    async add(d) { const id = newId(); col(c).set(id, structuredClone(d)); notify(); return docRef(c, id); },
+    onSnapshot: cb => listen(() => {
+      let rows = [...col(c)].filter(([, d]) => filters.every(([f, op, v]) => d[f] !== undefined && ops[op](d[f], v)));
+      if (order) { const [f, dir] = order; rows.sort(([, a], [, b]) => (a[f] > b[f] ? 1 : a[f] < b[f] ? -1 : 0) * (dir === "desc" ? -1 : 1)); }
+      cb({ docs: rows.slice(0, lim).map(([id]) => snap(c, id)), metadata: { fromCache: false } });
+    }),
+  });
+  return { collection: c => query(c) };
+}
+function demoSeed() {
+  const day = k => iso(shift(now, k));
+  const at = (k, h, m = 0) => { const d = shift(now, k); d.setHours(h, m, 0, 0); return d.getTime(); };
+  const task = (title, date, extra = {}) => ({ title, date, done: false, urgent: false, createdAt: at(-1, 9), doneAt: null, movedCount: 0, ...extra });
+  const tasks = {
+    t1: task("Дописать README для pet-проекта", day(0), { focus: day(0), createdAt: at(-1, 9, 1) }),
+    t2: task("Ответить на ревью в pull request", day(0), { urgent: true, createdAt: at(-1, 9, 2) }),
+    t3: task("Созвон с командой проекта", day(0), { calStart: "15:00", calEnd: "15:45", createdAt: at(-1, 9, 3) }),
+    t4: task("Разобрать тему декораторов", day(0), { done: true, doneAt: at(0, 10, 20) }),
+    t5: task("Купить продукты на неделю", day(0), { done: true, doneAt: at(0, 9, 5) }),
+    o1: task("Обновить резюме", day(-3), { movedCount: 4 }),
+    o2: task("Починить тесты в CI", day(-1), { movedCount: 1 }),
+    m1: task("Подготовить пост для канала", day(1)),
+    m2: task("Сходить в спортзал", day(1)),
+    u1: task("Сдать итоговый проект модуля", day(4), { urgent: true }),
+    b1: task("Прочитать книгу про алгоритмы", ""),
+    b2: task("Настроить бэкап ноутбука", ""),
+  };
+  const pool = ["Разобрать почту", "Решить две задачи на LeetCode", "Посмотреть вебинар курса", "Сделать домашку по SQL", "Написать тесты для бота",
+    "Обновить зависимости", "Погулять час", "Созвон с ментором", "Прочитать главу книги", "Разобрать входящие заметки"];
+  const counts = [4, 3, 5, 2, 4, 3, 0, 3, 2, 4, 1, 3, 2];   // вчера, позавчера, …
+  const days = {};
+  counts.forEach((n, i) => {
+    const date = day(-(i + 1));
+    days[date] = { date, closedAt: at(-(i + 1), 20, 10 + i), source: i % 4 === 3 ? "auto" : "button",
+      done: pool.slice(i % 4, i % 4 + n), open: i % 3 === 0 ? ["Обновить резюме"] : [], moved: i % 2 ? ["Починить тесты в CI"] : [] };
+  });
+  return {
+    tasks,
+    recurring: { r1: { title: "Зарядка 15 минут", urgent: false, days: [0, 1, 2, 3, 4, 5, 6], createdAt: at(-30, 8) } },
+    days,
+    briefs: { [day(0)]: { date: day(0), generatedAt: at(0, 8, 30),
+      summary: "Доброе утро, Алекс! Вчера сделано 4 задачи, день закрыт кнопкой. Сегодня 5 задач, срочная одна: ответить на ревью. Главное на день: README, начни с него, пока голова свежая. «Обновить резюме» переносится уже четвёртый раз: разбей на шаги или удали. До дедлайна модуля «ООП» два дня.",
+      sources: { calendar: "ok", mail: "ok", telegram: "ok", github: "ok" },
+      calendar: [{ time: "10:00", title: "Стендап" }, { time: "15:00", title: "Созвон с командой проекта" }, { time: "19:30", title: "Вебинар курса" }],
+      mail: [{ from: "GitHub", subject: "Review requested in demo/pet-project", note: "Посмотреть ревью до обеда" }, { from: "Онлайн-школа", subject: "Открыт новый модуль" }],
+      telegram: [{ chat: "Чат потока курса", unread: 12, mentions: 1, note: "Ответить на вопрос про домашку" }, { chat: "Команда проекта", unread: 3, mentions: 0 }],
+      github: [{ title: "demo/pet-project", detail: "3 коммита, CI зелёный" }, { title: "Открытые PR", detail: "1 ждёт ревью" }] } },
+    reviews: { w1: { type: "week", createdAt: at(-1, 20), period: "прошлая неделя",
+      text: "Сделано 21 задача из 26. Лучший день: среда. Переносы чаще всего у задач без ясного первого шага." } },
+    study: {
+      s1: { title: "Основы Python", deadline: day(-20), done: true, doneAt: at(-21, 18), createdAt: 1 },
+      s2: { title: "Git и командная разработка", deadline: day(-9), done: true, doneAt: at(-10, 18), createdAt: 2 },
+      s3: { title: "ООП", deadline: day(2), done: false, doneAt: null, createdAt: 3 },
+      s4: { title: "Тестирование с pytest", deadline: day(9), done: false, doneAt: null, createdAt: 4 },
+      s5: { title: "Django: первый проект", deadline: day(24), done: false, doneAt: null, createdAt: 5 },
+    },
+    settings: { profile: { name: "Алекс", course: "Python-разработчик" } },
+  };
+}
+
 /* ---------- boot ---------- */
 renderHeader(); renderTasks(); renderBrief();
 window.claude?.use?.("mcp").then(m => { mcp = m; renderTasks(); }).catch(() => {});
 window.claude?.use?.("sample").then(s => { sample = s; renderTasks(); }).catch(() => {});
 (async () => {
-  db = await window.claude?.use?.("db") ?? null;
+  db = DEMO ? memoryDb(demoSeed()) : await window.claude?.use?.("db") ?? null;
+  $("#demoBar").hidden = !DEMO;
   if (!db) { renderTasks(); return; }
   // two non-overlapping queries: recent and future tasks, and unfinished older ones (backlog included)
   const merge = (snap, scope) => {
@@ -744,6 +1021,11 @@ window.claude?.use?.("sample").then(s => { sample = s; renderTasks(); }).catch((
   }, fail);
   db.collection("days").doc(TODAY).onSnapshot(s => { dayToday = s.exists ? s.data() : null; renderTasks(); }, fail);
   db.collection("days").doc(YESTERDAY).onSnapshot(s => { dayYesterday = s.exists ? s.data() : null; renderBrief(); }, fail);
+  db.collection("days").where("date", ">=", iso(shift(now, -60))).onSnapshot(s => {
+    daysHist.clear(); for (const d of s.docs) { const v = d.data(); daysHist.set(v.date || d.id, v); } renderStats();
+  }, fail);
+  db.collection("study").onSnapshot(s => { study.clear(); for (const d of s.docs) study.set(d.id, { ...d.data(), id: d.id }); renderStudy(); }, fail);
+  db.collection("settings").doc("profile").onSnapshot(s => { profile = s.exists ? s.data() : {}; renderHeader(); renderStudy(); }, fail);
   db.collection("briefs").doc(TODAY).onSnapshot(s => { brief = s.exists ? s.data() : null; renderBrief(); }, fail);
   db.collection("reviews").where("type", "==", "week").orderBy("createdAt", "desc").limit(1)
     .onSnapshot(s => { weekReview = s.docs[0]?.data() || null; renderBrief(); }, fail);

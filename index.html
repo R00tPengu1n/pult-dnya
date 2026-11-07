@@ -28,6 +28,11 @@ body { background: var(--bg); color: var(--fg); font: 15px/1.5 var(--f-body); }
   display: grid; gap: 24px }
 button, input, select { font: inherit; color: inherit }
 button { cursor: pointer }
+/* Большие мониторы: масштабируем весь пульт, чтобы он не терялся посреди экрана. */
+@media (min-width: 1600px) { .wrap { zoom: 1.2 } }
+@media (min-width: 2000px) { .wrap { zoom: 1.45 } }
+@media (min-width: 2600px) { .wrap { zoom: 1.8 } }
+@media (min-width: 3400px) { .wrap { zoom: 2.2 } }
 :focus-visible { outline: 2px solid var(--accent); outline-offset: 2px }
 
 header { display: flex; flex-wrap: wrap; align-items: end; justify-content: space-between; gap: 16px }
@@ -60,14 +65,16 @@ form.add input[type=text] { flex: 1 1 220px; min-width: 0; border: 1px solid var
 .urgent-toggle { display: flex; align-items: center; gap: 6px; font-size: 13px; color: var(--muted); white-space: nowrap; user-select: none }
 
 ul.tasks { list-style: none; margin: 0; padding: 0; display: grid; gap: 2px }
-.task { display: grid; grid-template-columns: 22px minmax(0, 1fr) auto; align-items: center; gap: 4px 10px; padding: 8px 6px; border-radius: 10px }
+.task { display: flex; flex-wrap: wrap; align-items: center; gap: 4px 10px; padding: 8px 6px; border-radius: 10px }
 .task:hover { background: var(--bg) }
 .task.stale { background: var(--hot-soft) }
-.task input[type=checkbox] { width: 18px; height: 18px; accent-color: var(--ok); margin: 0 }
-.task .t { overflow-wrap: anywhere }
+.task input[type=checkbox] { flex: none; width: 18px; height: 18px; accent-color: var(--ok); margin: 0 }
+/* Название не уже 14em: если кнопкам не хватает места, они уходят на следующую строку, а не сжимают текст в столбик. */
+.task .t { flex: 1 1 14em; min-width: 0; overflow-wrap: anywhere }
 .task.done .t { color: var(--muted); text-decoration: line-through }
-.task .meta { display: flex; gap: 6px; align-items: center; flex-wrap: wrap; justify-content: end }
-.task .picker { grid-column: 2 / -1; display: flex; gap: 6px; flex-wrap: wrap; align-items: center }
+.task .meta { flex: 0 1 auto; margin-left: auto; display: flex; gap: 6px; align-items: center; flex-wrap: wrap; justify-content: end }
+.task .picker, .task .sub { flex: 1 1 100%; margin-left: 28px }
+.task .picker { display: flex; gap: 6px; flex-wrap: wrap; align-items: center }
 .chip { font: 500 11px/1 var(--f-mono); letter-spacing: .04em; padding: 4px 7px; border-radius: 6px; white-space: nowrap }
 .chip.hot { background: var(--hot-soft); color: var(--hot) }
 .chip.moved { background: var(--accent-soft); color: var(--accent) }
@@ -77,7 +84,7 @@ ul.tasks { list-style: none; margin: 0; padding: 0; display: grid; gap: 2px }
 .icon-btn:hover { background: var(--line); color: var(--fg) }
 .icon-btn.on { color: var(--hot) }
 .chip.cal { background: var(--ok-soft); color: var(--ok); font-variant-numeric: tabular-nums }
-.sub { grid-column: 2 / -1; display: grid; gap: 8px; background: var(--surface); border: 1px solid var(--line); border-radius: 10px; padding: 10px 12px; font-size: 14px }
+.sub { display: grid; gap: 8px; background: var(--surface); border: 1px solid var(--line); border-radius: 10px; padding: 10px 12px; font-size: 14px }
 .sub-row { display: flex; gap: 8px; flex-wrap: wrap; align-items: center }
 .sub label { display: flex; gap: 8px; align-items: flex-start }
 .sub label input { margin-top: 3px }

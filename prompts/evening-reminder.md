@@ -3,11 +3,11 @@ name: evening-reminder-pult
 description: В 21:00 напоминает пушем закрыть день на «Пульте дня», если день ещё не закрыт.
 ---
 
-Проверь, закрыл ли пользователь день на своём дашборде «Пульт дня» (<ARTIFACT_URL>), и если нет — напомни пушем. Загрузи инструменты: ToolSearch "select:ArtifactData,PushNotification". Часовой пояс <TIMEZONE>. Пользователя зовут <NAME>.
+Проверь, закрыл ли пользователь день на своём дашборде «Пульт дня» (<ARTIFACT_URL>), и если нет — напомни пушем. Загрузи инструменты: ToolSearch "select:mcp__claude-artifacts__db_get,mcp__claude-artifacts__db_query,mcp__claude-artifacts__db_list,mcp__claude-artifacts__db_write,PushNotification". Слаг базы для всех вызовов db_*: `<ARTIFACT_SLUG>` (именно UUID: короткий ID из ссылки инструменты не принимают). Команды оболочки запускай инструментом Bash ровно в том виде, как они написаны здесь, текущее время узнай командой `date`. Часовой пояс <TIMEZONE>. Пользователя зовут <NAME>.
 
 1. TODAY = сегодняшняя локальная дата YYYY-MM-DD.
-2. ArtifactData get: collection "days", doc_id TODAY. Если документ есть и у него есть closedAt — день закрыт: ничего не делай, ответь «День уже закрыт».
-3. Иначе ArtifactData query: collection "tasks", where date == TODAY. Игнорируй задачи с deleted:true. Посчитай сделанные (done:true) и всего.
+2. db_get: collection "days", doc_id TODAY. Если документ есть и у него есть closedAt — день закрыт: ничего не делай, ответь «День уже закрыт».
+3. Иначе db_query: collection "tasks", where date == TODAY. Игнорируй задачи с deleted:true. Посчитай сделанные (done:true) и всего.
 4. Если задач на сегодня нет — ничего не отправляй, ответь «Задач не было».
 5. Иначе отправь PushNotification (status "proactive"), одна строка: «<NAME>, закрой день на пульте: сделано X из Y» и, если остались несделанные, добавь « — несрочные можно перенести на завтра».
 Ничего не меняй в базе. Ответь одной строкой, что сделал.

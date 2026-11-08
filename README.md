@@ -1,8 +1,9 @@
-# Pult Dnya
+# Day Console
 
 [Русская версия](README.ru.md)
 
-A personal daily dashboard that lives inside Claude. Tasks are managed on a single page;
+A personal daily dashboard that lives inside Claude (its Russian interface calls it
+«Пульт дня», "Day Console"). Tasks are managed on a single page;
 scheduled Claude agents collect the morning brief from the calendar, mail, Telegram and
 GitHub, close forgotten days and write weekly and monthly reviews.
 
@@ -16,7 +17,28 @@ demo mode with made-up data kept in memory, so it can be tried without an accoun
 ## What it does
 
 - **Tasks.** Today, tomorrow and a dateless backlog; urgent flags; moving one task or all
-  non-urgent ones; leftovers from past days; recurring tasks.
+  non-urgent ones; leftovers from past days. Rarely used actions sit in a "⋯" menu.
+- **Editing.** Rename a task right in its row (Enter saves, Esc cancels); a linked
+  calendar event is renamed too. Recurring tasks can be renamed as well.
+- **Notes.** A note under a task, shown in grey, with clickable links.
+- **Manual order.** ↑↓ arrows move a task within the list; done tasks sink, urgent ones rise.
+- **Undo delete.** After deleting a task or a recurring rule, "Undo" brings it back for
+  seven seconds with all its fields and its calendar event.
+- **Recurring tasks.** Every day, weekdays, weekends, chosen weekdays, every two weeks, or
+  once a month (including the last day of the month); the backlog shows the next date.
+- **Smart input.** A date, an estimate, urgency and repetition typed at the start or end of
+  a new task are recognised (the parser understands Russian): `Позвонить в банк завтра 30м !`
+  ("call the bank tomorrow, 30 min, urgent"), `Спортзал раз в 2 недели` ("gym every two
+  weeks"). A preview shows what was understood.
+- **Estimates and load.** Each task can have an estimate. A line above the list shows how
+  much is left, how much free time remains until 22:00 after meetings, and warns when the
+  day does not fit.
+- **Plan the day with Claude.** For today or tomorrow, Claude proposes an order, estimates,
+  what to move and what to take on. Every change has a checkbox; apply the chosen ones or
+  ask for another option.
+- **Reopen the day.** A closed day can be reopened, and the tasks moved at closing come
+  back to today.
+- **Main task for tomorrow.** A star on a tomorrow task pins it on the Tomorrow tab.
 - **Stuck tasks.** A task moved three or more times gets highlighted, and Claude can split
   it into small steps.
 - **Calendar.** Give a task a time slot and it becomes a Google Calendar event that moves
@@ -34,6 +56,8 @@ demo mode with made-up data kept in memory, so it can be tried without an accoun
 - **Pomodoro timer.** 25/5 minutes with a long break after four rounds, linked to a course
   module. The alarm is scheduled on the audio clock in advance, so it rings on time even in a
   background tab, and a full-screen notice stays until dismissed. Daily counts are saved.
+  A compact widget sits under Rhythm. A pomodoro can also be started on a task: the timer
+  ticks in its row and finished rounds count towards the task's estimate.
 - **No personal data in the code.** The user's name and course are set on the page and kept
   in the artifact database.
 
@@ -44,7 +68,7 @@ flowchart LR
     user([User]) --> page[index.html<br>Claude artifact]
     page <--> db[(Artifact database)]
     page --> cal[Google Calendar connector]
-    page --> llm[Claude: split a task]
+    page --> llm[Claude: split a task, plan the day]
     agents[Scheduled agents<br>prompts/] <--> db
     agents --> sources[Calendar, Gmail, GitHub CLI]
     agents --> digest[telegram_digest.py]

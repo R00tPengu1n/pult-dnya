@@ -31,6 +31,9 @@ demo mode with made-up data kept in memory, so it can be tried without an accoun
   tasks that get postponed, and a bar chart for the last seven days.
 - **Study.** Course modules with deadlines and progress; a module that is due soon is
   highlighted and can be added to today's tasks in one click.
+- **Pomodoro timer.** 25/5 minutes with a long break after four rounds, linked to a course
+  module. The alarm is scheduled on the audio clock in advance, so it rings on time even in a
+  background tab, and a full-screen notice stays until dismissed. Daily counts are saved.
 - **No personal data in the code.** The user's name and course are set on the page and kept
   in the artifact database.
 

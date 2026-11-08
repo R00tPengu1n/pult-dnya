@@ -155,6 +155,31 @@ ul.tasks { list-style: none; margin: 0; padding: 0; display: grid; gap: 2px }
 .study-progress { display: flex; align-items: center; gap: 10px }
 .meter { flex: 1; height: 8px; background: var(--bg); border-radius: 99px; overflow: hidden }
 .meter i { display: block; height: 100%; background: var(--ok); border-radius: 99px }
+/* помодоро */
+.pomo { display: flex; flex-wrap: wrap; align-items: center; gap: 16px 28px }
+.pomo-clock { display: grid; gap: 6px; justify-items: start }
+.pomo-time { font: 700 clamp(44px, 7vw, 64px)/1 var(--f-display); font-variant-numeric: tabular-nums; letter-spacing: -.02em }
+.pomo.break .pomo-time { color: var(--ok) }
+.pomo.running .pomo-time { color: var(--accent) }
+.pomo.running.break .pomo-time { color: var(--ok) }
+.pomo-body { flex: 1 1 280px; display: grid; gap: 12px; min-width: 0 }
+.pomo-row { display: flex; gap: 8px; flex-wrap: wrap; align-items: center }
+.pomo-row select { flex: 1 1 220px; min-width: 0; padding: 7px 10px; font-size: 14px }
+.pomo-dots { display: flex; gap: 6px }
+.pomo-dots i { width: 10px; height: 10px; border-radius: 99px; background: var(--line) }
+.pomo-dots i.on { background: var(--accent) }
+.pomo-alarm { position: fixed; inset: 0; z-index: 10; display: grid; place-items: center; padding: 20px; background: #0b0f1acc }
+.pomo-alarm-card { background: var(--surface); border: 3px solid var(--accent); border-radius: 20px; padding: 28px 32px; max-width: 460px; width: 100%;
+  display: grid; gap: 12px; justify-items: center; text-align: center; box-shadow: 0 20px 60px #0008 }
+.pomo-alarm-card h2 { font: 700 clamp(24px, 4vw, 32px)/1.15 var(--f-display) }
+.pomo-alarm-card p { margin: 0; color: var(--muted) }
+.pomo-alarm-bell { font-size: 56px; line-height: 1 }
+@media (prefers-reduced-motion: no-preference) {
+  .pomo-alarm-card { animation: pulse 1s ease-in-out infinite alternate }
+  .pomo-alarm-bell { animation: ring .5s ease-in-out infinite alternate }
+}
+@keyframes pulse { from { border-color: var(--accent) } to { border-color: var(--hot) } }
+@keyframes ring { from { transform: rotate(-14deg) } to { transform: rotate(14deg) } }
 .soon { display: grid; grid-template-columns: repeat(auto-fit, minmax(190px, 1fr)); gap: 10px }
 .soon div { border: 1px dashed var(--line); border-radius: 12px; padding: 12px 14px; font-size: 14px; color: var(--muted) }
 .soon b { display: block; color: var(--fg); font-weight: 600; margin-bottom: 2px }
@@ -308,6 +333,28 @@ ul.tasks { list-style: none; margin: 0; padding: 0; display: grid; gap: 2px }
       </form>
     </section>
   </div>
+  <section class="panel" aria-labelledby="pomoTitle">
+    <div class="panel-head"><h2 id="pomoTitle">Помодоро</h2><span class="status" id="pomoToday"></span></div>
+    <div class="pomo" id="pomo">
+      <div class="pomo-clock">
+        <div class="tabs" role="tablist" aria-label="Режим таймера" id="pomoModes"></div>
+        <div class="pomo-time" id="pomoTime" role="timer" aria-live="off">25:00</div>
+        <div class="pomo-dots" id="pomoDots" aria-hidden="true"></div>
+      </div>
+      <div class="pomo-body">
+        <div class="pomo-row">
+          <button class="btn primary" type="button" id="pomoStart">Старт</button>
+          <button class="btn" type="button" id="pomoReset">Сброс</button>
+          <button class="btn" type="button" id="pomoSkip">Пропустить</button>
+          <button class="icon-btn" type="button" id="pomoTest" title="Проиграть сигнал">🔔 проверить звук</button>
+        </div>
+        <div class="pomo-row">
+          <select class="field" id="pomoModule" aria-label="Над чем работаешь"></select>
+        </div>
+        <div class="status" id="pomoHint"></div>
+      </div>
+    </div>
+  </section>
   <section class="panel" aria-labelledby="soonTitle">
     <div class="panel-head"><h2 id="soonTitle">Скоро на пульте</h2><span class="status">запланировано, ещё не подключено</span></div>
     <div class="soon">
@@ -316,6 +363,17 @@ ul.tasks { list-style: none; margin: 0; padding: 0; display: grid; gap: 2px }
       <div><b>Другие соцсети</b>статистика и идеи для контента</div>
     </div>
   </section>
+</div>
+<div class="pomo-alarm" id="pomoAlarm" role="alertdialog" aria-labelledby="pomoAlarmTitle" aria-describedby="pomoAlarmText" hidden>
+  <div class="pomo-alarm-card">
+    <div class="pomo-alarm-bell" aria-hidden="true">⏰</div>
+    <h2 id="pomoAlarmTitle"></h2>
+    <p id="pomoAlarmText"></p>
+    <div class="pomo-row">
+      <button class="btn primary" type="button" id="pomoAlarmGo"></button>
+      <button class="btn" type="button" id="pomoAlarmLater">Понял, позже</button>
+    </div>
+  </div>
 </div>
 <div class="toast" id="toast" hidden></div>
 
@@ -920,6 +978,148 @@ function renderBrief() {
   }
 }
 
+/* ---------- помодоро ---------- */
+// Таймер считает от времени окончания, а не тиками: не сбивается в фоновой вкладке.
+// Состояние таймера живёт в localStorage этого браузера, итоги дня — в базе: pomodoro/{date} = {date, count, minutes, modules: {studyId: n}}.
+const POMO = { focus: { label: "Фокус", min: 25 }, short: { label: "Перерыв", min: 5 }, long: { label: "Длинный", min: 15 } };
+const POMO_CYCLE = 4;               // после стольких помидоров длинный перерыв
+const POMO_KEY = "pult.pomodoro";
+let pomoDay = null, pomoTick = null, pomoAudio = null;
+let pomo = { mode: "focus", endAt: null, left: POMO.focus.min * 60000, streak: 0, module: "" };
+try { Object.assign(pomo, JSON.parse(localStorage.getItem(POMO_KEY) || "{}")); } catch {}
+if (pomo.day !== TODAY) { pomo.day = TODAY; pomo.streak = 0; }   // серия до длинного перерыва считается в пределах дня
+let pomoLoaded = false, studyLoaded = false;
+const pomoSave = () => { try { localStorage.setItem(POMO_KEY, JSON.stringify(pomo)); } catch {} };
+const pomoLeft = () => pomo.endAt ? Math.max(0, pomo.endAt - Date.now()) : pomo.left;
+const mmss = ms => { const s = Math.ceil(ms / 1000); return `${pad(Math.floor(s / 60))}:${pad(s % 60)}`; };
+
+/* Сигнал ставится на часы AudioContext заранее, при старте: аудио не тормозит в свёрнутой вкладке, в отличие от setInterval.
+   Браузер даёт включить звук только после клика, поэтому контекст создаётся на первом нажатии на странице. */
+const ALARM_REPEATS = 4, ALARM_GAP = 8;   // мелодия звучит до 4 раз с паузой 8 с, пока не нажмёшь «Понял»
+const ALARM_TUNES = {
+  focus: [[523, 0], [659, .18], [784, .36], [1047, .54], [784, .9], [1047, 1.08]],   // фокус окончен: вверх, «отдыхай»
+  break: [[1047, 0], [880, .2], [698, .4], [523, .6], [698, 1], [1047, 1.2]],        // перерыв окончен: вниз и снова вверх
+};
+let pomoAlarm = null;
+function ensureAudio() {
+  if (!pomoAudio) try { pomoAudio = new (window.AudioContext || window.webkitAudioContext)(); } catch { return null; }
+  pomoAudio.resume?.().catch(() => {});
+  return pomoAudio;
+}
+function playTune(ctx, out, kind, at) {
+  for (const [f, t] of ALARM_TUNES[kind]) for (const [mul, type, vol] of [[1, "square", .35], [2, "triangle", .25]]) {
+    const o = ctx.createOscillator(), g = ctx.createGain();
+    o.type = type; o.frequency.value = f * mul;
+    g.gain.setValueAtTime(.0001, at + t);
+    g.gain.exponentialRampToValueAtTime(vol, at + t + .015);
+    g.gain.exponentialRampToValueAtTime(.0001, at + t + .32);
+    o.connect(g).connect(out); o.start(at + t); o.stop(at + t + .35);
+  }
+}
+function scheduleAlarm(inMs, kind) {
+  cancelAlarm();
+  const ctx = pomoAudio; if (!ctx) return;
+  try {
+    const comp = ctx.createDynamicsCompressor(), master = ctx.createGain();
+    comp.threshold.value = -20; comp.ratio.value = 6; master.gain.value = 1.6;
+    comp.connect(master).connect(ctx.destination);
+    const start = ctx.currentTime + inMs / 1000;
+    for (let i = 0; i < ALARM_REPEATS; i++) playTune(ctx, comp, kind, start + i * ALARM_GAP);
+    pomoAlarm = master;
+  } catch {}
+}
+function cancelAlarm() { try { pomoAlarm?.disconnect(); } catch {} pomoAlarm = null; }
+let titleBlink = null;
+function showAlarm(wasFocus, next) {
+  const box = $("#pomoAlarm");
+  $("#pomoAlarmTitle").textContent = wasFocus ? "Помидор готов!" : "Перерыв окончен!";
+  $("#pomoAlarmText").textContent = wasFocus ? `Отдохни ${POMO[next].min} минут: встань, разомнись, попей воды.` : "Возвращайся к учёбе: следующие 25 минут без отвлечений.";
+  $("#pomoAlarmGo").textContent = wasFocus ? "Начать перерыв" : "Начать фокус";
+  box.hidden = false; $("#pomoAlarmGo").focus();
+  clearInterval(titleBlink); let on = false;
+  titleBlink = setInterval(() => { document.title = (on = !on) ? (wasFocus ? "⏰ Помидор готов!" : "⏰ Пора учиться!") : "Пульт дня"; }, 800);
+}
+function hideAlarm() {
+  $("#pomoAlarm").hidden = true; cancelAlarm();
+  clearInterval(titleBlink); titleBlink = null; renderPomoTime();
+}
+function pomoSetMode(mode, keepAlarm) {
+  clearInterval(pomoTick); pomoTick = null;
+  if (!keepAlarm) cancelAlarm();
+  pomo.mode = mode; pomo.endAt = null; pomo.left = POMO[mode].min * 60000;
+  pomoSave(); renderPomo();
+}
+async function pomoRecord() {
+  const ref = db?.collection("pomodoro").doc(TODAY);
+  if (!ref) return;
+  const modules = { ...(pomoDay?.modules || {}) };
+  if (pomo.module) modules[pomo.module] = (modules[pomo.module] || 0) + 1;
+  const next = { date: TODAY, count: (pomoDay?.count || 0) + 1, minutes: (pomoDay?.minutes || 0) + POMO.focus.min, modules };
+  await write(() => pomoDay ? ref.update(next) : ref.set(next));
+}
+function pomoFinish(late) {
+  clearInterval(pomoTick); pomoTick = null;
+  const wasFocus = pomo.mode === "focus";
+  if (wasFocus) { pomo.streak = (pomo.streak || 0) + 1; pomoRecord(); }
+  const next = wasFocus ? (pomo.streak % POMO_CYCLE === 0 ? "long" : "short") : "focus";
+  pomoSetMode(next, !late);          // звук уже звучит: он был поставлен заранее
+  if (late) toast(wasFocus ? "Помидор засчитан, пока вкладка была закрыта" : "Перерыв закончился, пока вкладка была закрыта");
+  else showAlarm(wasFocus, next);
+}
+function pomoRun() {
+  clearInterval(pomoTick);
+  pomoTick = setInterval(() => { if (pomoLeft() <= 0) pomoFinish(false); else renderPomoTime(); }, 250);
+}
+function renderPomoTime() {
+  const left = pomoLeft();
+  $("#pomoTime").textContent = mmss(left);
+  if (titleBlink) return;
+  document.title = pomo.endAt ? `${mmss(left)} · ${POMO[pomo.mode].label}` : "Пульт дня";
+}
+function renderPomo() {
+  const running = !!pomo.endAt;
+  $("#pomo").className = "pomo" + (pomo.mode === "focus" ? "" : " break") + (running ? " running" : "");
+  $("#pomoModes").replaceChildren(...Object.entries(POMO).map(([k, v]) => el("button", { type: "button", role: "tab",
+    "aria-selected": String(pomo.mode === k), onclick: () => { if (pomo.mode !== k) pomoSetMode(k); } }, v.label)));
+  $("#pomoDots").replaceChildren(...Array.from({ length: POMO_CYCLE }, (_, i) => el("i", { class: i < (pomo.streak || 0) % POMO_CYCLE ? "on" : "" })));
+  const full = pomoLeft() === POMO[pomo.mode].min * 60000;
+  $("#pomoStart").textContent = running ? "Пауза" : full ? "Старт" : "Продолжить";
+  const open = [...study.values()].filter(m => !m.done).sort((a, b) => (a.deadline || "9999").localeCompare(b.deadline || "9999"));
+  if (studyLoaded && pomo.module && !open.some(m => m.id === pomo.module)) { pomo.module = ""; pomoSave(); }
+  $("#pomoModule").replaceChildren(el("option", { value: "" }, "Без привязки к модулю"),
+    ...open.map(m => el("option", { value: m.id, selected: m.id === pomo.module }, m.title)));
+  const c = pomoDay?.count || 0, onMod = pomo.module ? pomoDay?.modules?.[pomo.module] || 0 : 0;
+  $("#pomoToday").textContent = c ? `сегодня ${c} · ${pomoDay.minutes} мин` : "сегодня пока ни одного";
+  $("#pomoHint").textContent = pomo.mode === "focus"
+    ? (pomo.module ? `На этот модуль сегодня: ${onMod}. ` : "") + "25 минут только учёба, без телефона и вкладок."
+    : "Встань, разомнись, попей воды. Экран можно не трогать.";
+  renderPomoTime();
+}
+function pomoToggle() {
+  ensureAudio();
+  if (pomo.endAt) { pomo.left = pomoLeft(); pomo.endAt = null; clearInterval(pomoTick); pomoTick = null; cancelAlarm(); }
+  else { pomo.endAt = Date.now() + pomoLeft(); pomoRun(); scheduleAlarm(pomoLeft(), pomo.mode === "focus" ? "focus" : "break"); }
+  pomoSave(); renderPomo();
+}
+$("#pomoStart").addEventListener("click", pomoToggle);
+$("#pomoTest").addEventListener("click", () => {        // один раз, не трогая поставленный сигнал
+  const ctx = ensureAudio(); if (!ctx) return toast("Браузер не даёт играть звук");
+  try { const comp = ctx.createDynamicsCompressor(), master = ctx.createGain(); comp.threshold.value = -20; comp.ratio.value = 6; master.gain.value = 1.6;
+    comp.connect(master).connect(ctx.destination); playTune(ctx, comp, "focus", ctx.currentTime + .05); } catch {}
+  toast("Так прозвучит конец помидора. Тихо? Прибавь громкость в системе");
+});
+$("#pomoAlarmGo").addEventListener("click", () => { hideAlarm(); pomoToggle(); });
+$("#pomoAlarmLater").addEventListener("click", hideAlarm);
+document.addEventListener("keydown", e => { if (e.key === "Escape" && !$("#pomoAlarm").hidden) hideAlarm(); });
+// после перезагрузки браузер молчит до первого клика: на первом клике включаем звук и заново ставим сигнал
+document.addEventListener("pointerdown", () => {
+  const fresh = !pomoAudio; ensureAudio();
+  if (fresh && pomo.endAt) scheduleAlarm(pomoLeft(), pomo.mode === "focus" ? "focus" : "break");
+}, { capture: true });
+$("#pomoReset").addEventListener("click", () => pomoSetMode(pomo.mode));
+$("#pomoSkip").addEventListener("click", () => pomoSetMode(pomo.mode === "focus" ? ((pomo.streak || 0) % POMO_CYCLE === POMO_CYCLE - 1 ? "long" : "short") : "focus"));
+$("#pomoModule").addEventListener("change", e => { pomo.module = e.target.value; pomoSave(); renderPomo(); });
+
 /* ---------- демо-режим: выдуманные данные в памяти вкладки ---------- */
 // Включается при локальном запуске, на GitHub Pages или по адресу с #demo. Ничего никуда не отправляет.
 const DEMO = /demo/.test(location.hash) || location.protocol === "file:" || /^(localhost|127\.0\.0\.1)$|\.github\.io$/.test(location.hostname);
@@ -1005,17 +1205,18 @@ function demoSeed() {
       s8: { title: "CI/CD", deadline: day(45), done: false, doneAt: null, createdAt: 8 },
     },
     settings: { profile: { name: "Алекс", course: "Python-разработчик" } },
+    pomodoro: { [day(0)]: { date: day(0), count: 3, minutes: 75, modules: { s3: 2 } } },
   };
 }
 
 /* ---------- boot ---------- */
-renderHeader(); renderTasks(); renderBrief();
+renderHeader(); renderTasks(); renderBrief(); renderPomo();
 window.claude?.use?.("mcp").then(m => { mcp = m; renderTasks(); }).catch(() => {});
 window.claude?.use?.("sample").then(s => { sample = s; renderTasks(); }).catch(() => {});
 (async () => {
   db = DEMO ? memoryDb(demoSeed()) : await window.claude?.use?.("db") ?? null;
   $("#demoBar").hidden = !DEMO;
-  if (!db) { renderTasks(); return; }
+  if (!db) { renderTasks(); if (pomo.endAt) pomo.endAt <= Date.now() ? pomoFinish(true) : pomoRun(); return; }
   // two non-overlapping queries: recent and future tasks, and unfinished older ones (backlog included)
   const merge = (snap, scope) => {
     for (const [id, t] of taskMap) if (t._scope === scope) taskMap.delete(id);
@@ -1035,7 +1236,15 @@ window.claude?.use?.("sample").then(s => { sample = s; renderTasks(); }).catch((
   db.collection("days").where("date", ">=", iso(shift(now, -60))).onSnapshot(s => {
     daysHist.clear(); for (const d of s.docs) { const v = d.data(); daysHist.set(v.date || d.id, v); } renderStats();
   }, fail);
-  db.collection("study").onSnapshot(s => { study.clear(); for (const d of s.docs) study.set(d.id, { ...d.data(), id: d.id }); renderStudy(); }, fail);
+  db.collection("study").onSnapshot(s => { study.clear(); for (const d of s.docs) study.set(d.id, { ...d.data(), id: d.id }); studyLoaded = true; renderStudy(); renderPomo(); }, fail);
+  db.collection("pomodoro").doc(TODAY).onSnapshot(s => {
+    pomoDay = s.exists ? s.data() : null;
+    if (!pomoLoaded) {               // сессия могла закончиться, пока вкладка была закрыта
+      pomoLoaded = true;
+      if (pomo.endAt && pomo.endAt <= Date.now()) pomoFinish(true); else if (pomo.endAt) pomoRun();
+    }
+    renderPomo();
+  }, fail);
   db.collection("settings").doc("profile").onSnapshot(s => { profile = s.exists ? s.data() : {}; renderHeader(); renderStudy(); }, fail);
   db.collection("briefs").doc(TODAY).onSnapshot(s => { brief = s.exists ? s.data() : null; renderBrief(); }, fail);
   db.collection("reviews").where("type", "==", "week").orderBy("createdAt", "desc").limit(1)

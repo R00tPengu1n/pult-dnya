@@ -703,6 +703,8 @@ function deadlineChip(m) {
   return el("span", { class: "chip " + cls, title: "Дедлайн: " + fmtDate(m.deadline) }, txt);
 }
 const studyRef = id => db.collection("study").doc(id);
+const STUDY_PREVIEW = 5;            // сколько ближайших модулей видно без раскрытия
+let studyAll = false;
 function renderStudy() {
   $("#studyCourse").textContent = profile.course || "";
   const list = [...study.values()].sort((a, b) => (a.done - b.done) || (a.deadline || "9999").localeCompare(b.deadline || "9999") || (a.createdAt || 0) - (b.createdAt || 0));
@@ -711,8 +713,14 @@ function renderStudy() {
   if (list.length) $("#studyProgress").replaceChildren(el("div", { class: "meter" }, el("i", { style: `width:${Math.round(done / list.length * 100)}%` })),
     el("span", { class: "status" }, `готово ${done} из ${list.length}`));
   if (!list.length) { $("#studyArea").replaceChildren(emptyNote(db ? "Добавь модули курса с дедлайнами: пульт подсветит те, что горят." : "Модули загружаются…")); return; }
-  $("#studyArea").replaceChildren(el("ul", { class: "tasks" }, list.map(m => {
+  const shown = studyAll ? list : list.filter(m => !m.done).slice(0, STUDY_PREVIEW);
+  const hidden = list.length - shown.length;
+  const more = hidden > 0 || studyAll
+    ? el("button", { class: "icon-btn", type: "button", onclick: () => { studyAll = !studyAll; renderStudy(); } }, studyAll ? "свернуть" : `показать все (ещё ${hidden})`)
+    : "";
+  $("#studyArea").replaceChildren(el("ul", { class: "tasks" }, shown.map(m => {
     const meta = el("span", { class: "meta" }, deadlineChip(m));
+    if (!m.done && m.progress > 0) meta.prepend(el("span", { class: "status", title: "Прогресс на платформе" }, `${m.progress}%`));
     if (!m.done) {
       const inTasks = live().some(t => t.fromStudy === m.id && !t.done);
       meta.append(el("button", { class: "icon-btn", type: "button", disabled: inTasks, onclick: () => write(() => db.collection("tasks").add({
@@ -724,7 +732,7 @@ function renderStudy() {
       el("input", { type: "checkbox", id: "st-" + m.id, "aria-label": "Модуль пройден", checked: m.done,
         onchange: e => write(() => studyRef(m.id).update({ done: e.target.checked, doneAt: e.target.checked ? Date.now() : null })) }),
       el("label", { class: "t", for: "st-" + m.id }, m.title), meta);
-  })));
+  })), more);
 }
 $("#studyForm").addEventListener("submit", async e => {
   e.preventDefault();
@@ -989,9 +997,12 @@ function demoSeed() {
     study: {
       s1: { title: "Основы Python", deadline: day(-20), done: true, doneAt: at(-21, 18), createdAt: 1 },
       s2: { title: "Git и командная разработка", deadline: day(-9), done: true, doneAt: at(-10, 18), createdAt: 2 },
-      s3: { title: "ООП", deadline: day(2), done: false, doneAt: null, createdAt: 3 },
+      s3: { title: "ООП", deadline: day(2), done: false, doneAt: null, createdAt: 3, progress: 60 },
       s4: { title: "Тестирование с pytest", deadline: day(9), done: false, doneAt: null, createdAt: 4 },
       s5: { title: "Django: первый проект", deadline: day(24), done: false, doneAt: null, createdAt: 5 },
+      s6: { title: "REST API", deadline: day(31), done: false, doneAt: null, createdAt: 6 },
+      s7: { title: "Docker", deadline: day(38), done: false, doneAt: null, createdAt: 7 },
+      s8: { title: "CI/CD", deadline: day(45), done: false, doneAt: null, createdAt: 8 },
     },
     settings: { profile: { name: "Алекс", course: "Python-разработчик" } },
   };

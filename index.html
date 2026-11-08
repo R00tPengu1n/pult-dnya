@@ -78,6 +78,22 @@ ul.tasks { list-style: none; margin: 0; padding: 0; display: grid; gap: 2px }
 .task.done .t { color: var(--muted); text-decoration: line-through }
 .task .meta { flex: 0 1 auto; margin-left: auto; display: flex; gap: 6px; align-items: center; flex-wrap: wrap; justify-content: end }
 .task .picker, .task .sub { flex: 1 1 100%; margin-left: 28px }
+.task .edit { flex: 1 1 14em; min-width: 0; display: flex; gap: 6px; flex-wrap: wrap; align-items: center }
+.task .note { flex: 1 1 100%; margin-left: 28px; color: var(--muted); font-size: 13px; white-space: pre-wrap; overflow-wrap: anywhere }
+.task .note a { color: var(--accent) }
+.task .sub textarea { width: 100%; min-height: 4.5em; resize: vertical; border: 1px solid var(--accent); background: var(--surface); border-radius: 8px; padding: 6px 10px; font: inherit; box-sizing: border-box }
+.task .order { display: inline-flex }
+.task .order .icon-btn { padding: 4px 3px }
+.task .order .icon-btn:disabled { visibility: hidden }
+@media (hover: hover) { .task:not(:hover):not(:focus-within) .order { opacity: 0 } }
+.days { display: flex; gap: 4px; flex-wrap: wrap }
+.days label { display: inline-flex; align-items: center; justify-content: center; min-width: 2.4em; padding: 4px 6px; border: 1px solid var(--line); border-radius: 8px; cursor: pointer; font-size: 13px; user-select: none }
+.days label:has(input:checked) { background: var(--dusk-soft); border-color: var(--dusk); color: var(--dusk) }
+.days input { position: absolute; opacity: 0; pointer-events: none }
+.days label:has(input:focus-visible) { outline: 2px solid var(--dusk); outline-offset: 1px }
+.toast { display: flex; gap: 12px; align-items: center }
+.toast button { border: 0; background: none; color: inherit; font: 600 14px var(--f-body, inherit); text-decoration: underline; padding: 2px 4px; cursor: pointer }
+.task .edit input { flex: 1 1 14em; min-width: 0; border: 1px solid var(--accent); background: var(--surface); border-radius: 8px; padding: 6px 10px; font: inherit }
 .task .picker { display: flex; gap: 6px; flex-wrap: wrap; align-items: center }
 .chip { font: 500 11px/1 var(--f-mono); letter-spacing: .04em; padding: 4px 7px; border-radius: 6px; white-space: nowrap }
 .chip.hot { background: var(--hot-soft); color: var(--hot) }
@@ -87,6 +103,35 @@ ul.tasks { list-style: none; margin: 0; padding: 0; display: grid; gap: 2px }
 .icon-btn { border: 0; background: none; color: var(--muted); padding: 4px 6px; border-radius: 6px; font-size: 13px; white-space: nowrap }
 .icon-btn:hover { background: var(--line); color: var(--fg) }
 .icon-btn.on { color: var(--hot) }
+.icon-btn.has-note { color: var(--accent) }
+.chip.est { background: var(--bg); color: var(--muted); border: 1px solid var(--line) }
+.chip.pom { background: var(--accent-soft); color: var(--accent); font-variant-numeric: tabular-nums }
+.chip.pom.live { background: var(--accent); color: var(--surface) }
+.task .more { display: flex; gap: 4px 6px; flex-wrap: wrap; align-items: center; flex: 1 1 100%; margin-left: 28px }
+.task .more .icon-btn { border: 1px solid var(--line) }
+.quick { display: flex; gap: 6px; flex-wrap: wrap; align-items: center; font-size: 13px; color: var(--muted); min-height: 0 }
+.quick .chip { font-size: 12px }
+.plan-bar { display: flex; gap: 8px; flex-wrap: wrap; align-items: center }
+.plan { display: grid; gap: 10px; background: var(--surface); border: 1px solid var(--dusk); border-radius: 12px; padding: 12px 14px; font-size: 14px }
+.plan h3 { margin: 0; font: 600 15px var(--f-display, inherit); color: var(--dusk) }
+.plan .why { color: var(--muted); font-size: 13px }
+.plan ol { margin: 0; padding-left: 1.4em; display: grid; gap: 2px }
+.plan .sec { display: grid; gap: 4px }
+.plan .sec-title { font: 500 11px/1 var(--f-mono); letter-spacing: .06em; text-transform: uppercase; color: var(--muted) }
+.plan label { display: flex; gap: 8px; align-items: flex-start }
+.plan label input { margin-top: 3px }
+.plan .err { color: var(--hot) }
+.focus-next { display: flex; gap: 8px 12px; align-items: center; flex-wrap: wrap; border: 1px solid var(--accent); background: var(--accent-soft); border-radius: 12px; padding: 10px 14px; font-size: 15px }
+.focus-next.unset { border-style: dashed; background: none; color: var(--muted); font-size: 14px }
+.focus-next b { flex: 1 1 12em; font: 600 16px/1.3 var(--f-display, inherit); overflow-wrap: anywhere }
+.focus-next .eyebrow { color: var(--accent) }
+.load { display: flex; gap: 6px 14px; flex-wrap: wrap; align-items: baseline; font-size: 13px; color: var(--muted); padding: 2px 6px }
+.load b { color: var(--fg); font-weight: 600 }
+.load.over { color: var(--hot) }
+.load.over b { color: var(--hot) }
+.pomo-task { display: flex; gap: 8px; align-items: center; flex-wrap: wrap; font-size: 14px }
+.pomo-task b { font-weight: 600; overflow-wrap: anywhere }
+@media (hover: none) { .kbd-hint { display: none } }
 .chip.cal { background: var(--ok-soft); color: var(--ok); font-variant-numeric: tabular-nums }
 .sub { display: grid; gap: 8px; background: var(--surface); border: 1px solid var(--line); border-radius: 10px; padding: 10px 12px; font-size: 14px }
 .sub-row { display: flex; gap: 8px; flex-wrap: wrap; align-items: center }
@@ -140,6 +185,29 @@ ul.tasks { list-style: none; margin: 0; padding: 0; display: grid; gap: 2px }
 .field.grow { flex: 1 1 200px; min-width: 0; padding: 7px 10px; font-size: 14px }
 
 /* ритм и учёба */
+/* нижний ряд без пустот: колонки одной высоты, короткая тянется, её нижний блок прижат к низу */
+.row2 { align-items: stretch !important }
+.row2.measuring { align-items: start !important }
+.row2.measuring .stack { grid-template-rows: auto auto }
+.stack { display: grid; gap: 24px; min-width: 0; grid-template-rows: auto 1fr }
+.pomo-panel, .study-panel { display: flex; flex-direction: column }
+.pomo-panel { gap: 10px; padding: 16px 20px }
+.study-panel { gap: 16px }
+#studyForm { margin-top: auto }
+.pomo-panel .pomo-row select { flex: 1 1 8em; min-width: 0; max-width: 14em; padding: 5px 8px; font-size: 13px }
+.pomo-panel .pomo { flex-wrap: nowrap; gap: 18px; align-items: center }
+.pomo-panel .pomo-clock { gap: 8px; justify-items: start }
+.pomo-panel .pomo-time { font-size: clamp(30px, 3.4vw, 36px) }
+.pomo-panel #pomoHint { display: none }          /* в компактном виджете без подсказки: суть видна по режиму и задаче */
+.pomo-panel .icon-btn { font-size: 15px; padding: 4px 7px }
+.pomo-panel .pomo-dots i { width: 8px; height: 8px }
+.pomo-panel .pomo-body { flex: 1 1 auto; gap: 8px; justify-items: end }
+.pomo-panel .tabs button { padding: 4px 10px; font-size: 13px }
+.pomo-panel .pomo-row { justify-content: flex-end; gap: 4px }
+.pomo-foot { display: grid; gap: 6px }
+.pomo-foot select { padding: 6px 10px; font-size: 13px; width: 100% }
+.pomo-panel .pomo-task { font-size: 13px; background: var(--accent-soft); border-radius: 8px; padding: 6px 10px }
+@media (max-width: 420px) { .pomo-panel .pomo { flex-wrap: wrap } .pomo-panel .pomo-body { justify-items: start } .pomo-panel .pomo-row { justify-content: flex-start } }
 .row2 { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 24px; align-items: start }
 @media (max-width: 860px) { .row2 { grid-template-columns: minmax(0, 1fr) } }
 .kpis { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 10px }
@@ -244,7 +312,7 @@ ul.tasks { list-style: none; margin: 0; padding: 0; display: grid; gap: 2px }
 
       <form class="add" id="addForm" autocomplete="off">
         <div class="add-row">
-          <input type="text" id="newTask" placeholder="Новая задача…" aria-label="Новая задача">
+          <input type="text" id="newTask" placeholder="Новая задача… например: завтра README 30м !" aria-label="Новая задача">
           <button class="btn" type="submit">Добавить</button>
         </div>
         <div class="add-row">
@@ -261,11 +329,17 @@ ul.tasks { list-style: none; margin: 0; padding: 0; display: grid; gap: 2px }
             <option value="weekdays">по будням</option>
             <option value="weekends">по выходным</option>
             <option value="weekly">раз в неделю</option>
+            <option value="biweekly">раз в 2 недели</option>
+            <option value="monthly">раз в месяц</option>
           </select>
           <label class="urgent-toggle"><input type="checkbox" id="newUrgent"> срочно</label>
         </div>
+        <div class="quick" id="quickPreview" aria-live="polite"></div>
       </form>
 
+      <div class="load" id="load" hidden></div>
+      <div id="planArea"></div>
+      <div class="focus-next" id="focusNext" hidden></div>
       <div id="taskArea"></div>
 
       <div class="bulk" id="bulk" hidden>
@@ -317,12 +391,36 @@ ul.tasks { list-style: none; margin: 0; padding: 0; display: grid; gap: 2px }
   </div>
 
   <div class="row2">
+    <div class="stack">
     <section class="panel" aria-labelledby="statsTitle">
       <div class="panel-head"><h2 id="statsTitle">Ритм</h2><span class="status">последние 7 дней</span></div>
       <div class="kpis" id="kpis"></div>
       <div class="bars" id="bars" role="img"></div>
     </section>
-    <section class="panel" aria-labelledby="studyTitle">
+    <!-- Помодоро: компактный виджет под «Ритмом» -->
+    <section class="panel pomo-panel" aria-labelledby="pomoTitle">
+      <div class="panel-head"><h2 id="pomoTitle">Помодоро</h2><span class="status" id="pomoToday"></span></div>
+      <div class="pomo" id="pomo">
+        <div class="pomo-clock">
+          <div class="pomo-time" id="pomoTime" role="timer" aria-live="off">25:00</div>
+          <div class="pomo-dots" id="pomoDots" aria-hidden="true"></div>
+        </div>
+        <div class="pomo-body">
+          <div class="tabs" role="tablist" aria-label="Режим таймера" id="pomoModes"></div>
+          <div class="pomo-row">
+            <select class="field" id="pomoModule" aria-label="Над чем работаешь"></select>
+            <button class="btn small primary" type="button" id="pomoStart">Старт</button>
+            <button class="icon-btn" type="button" id="pomoReset" title="Сбросить таймер" aria-label="Сбросить таймер">↺</button>
+            <button class="icon-btn" type="button" id="pomoSkip" title="Пропустить этап" aria-label="Пропустить этап">⏭</button>
+            <button class="icon-btn" type="button" id="pomoTest" title="Проиграть сигнал" aria-label="Проверить звук">🔔</button>
+          </div>
+        </div>
+      </div>
+      <div class="pomo-task" id="pomoTask" hidden></div>
+      <div class="status" id="pomoHint"></div>
+    </section>
+    </div>
+    <section class="panel study-panel" aria-labelledby="studyTitle">
       <div class="panel-head"><h2 id="studyTitle">Учёба</h2><span class="status" id="studyCourse"></span></div>
       <div class="study-progress" id="studyProgress" hidden></div>
       <div id="studyArea"></div>
@@ -333,28 +431,6 @@ ul.tasks { list-style: none; margin: 0; padding: 0; display: grid; gap: 2px }
       </form>
     </section>
   </div>
-  <section class="panel" aria-labelledby="pomoTitle">
-    <div class="panel-head"><h2 id="pomoTitle">Помодоро</h2><span class="status" id="pomoToday"></span></div>
-    <div class="pomo" id="pomo">
-      <div class="pomo-clock">
-        <div class="tabs" role="tablist" aria-label="Режим таймера" id="pomoModes"></div>
-        <div class="pomo-time" id="pomoTime" role="timer" aria-live="off">25:00</div>
-        <div class="pomo-dots" id="pomoDots" aria-hidden="true"></div>
-      </div>
-      <div class="pomo-body">
-        <div class="pomo-row">
-          <button class="btn primary" type="button" id="pomoStart">Старт</button>
-          <button class="btn" type="button" id="pomoReset">Сброс</button>
-          <button class="btn" type="button" id="pomoSkip">Пропустить</button>
-          <button class="icon-btn" type="button" id="pomoTest" title="Проиграть сигнал">🔔 проверить звук</button>
-        </div>
-        <div class="pomo-row">
-          <select class="field" id="pomoModule" aria-label="Над чем работаешь"></select>
-        </div>
-        <div class="status" id="pomoHint"></div>
-      </div>
-    </div>
-  </section>
   <section class="panel" aria-labelledby="soonTitle">
     <div class="panel-head"><h2 id="soonTitle">Скоро на пульте</h2><span class="status">запланировано, ещё не подключено</span></div>
     <div class="soon">
@@ -375,7 +451,7 @@ ul.tasks { list-style: none; margin: 0; padding: 0; display: grid; gap: 2px }
     </div>
   </div>
 </div>
-<div class="toast" id="toast" hidden></div>
+<div class="toast" id="toast" role="status" hidden></div>
 
 <script>
 const STALE_AFTER = 3;              // столько переносов — и задача подсвечивается
@@ -388,9 +464,31 @@ const TODAY = iso(now), TOMORROW = iso(shift(now, 1)), YESTERDAY = iso(shift(now
 const RECENT_FROM = iso(shift(now, -2));
 const LATER = "";                   // дата задачи из бэклога
 const REPEAT_DAYS = { daily: [0, 1, 2, 3, 4, 5, 6], weekdays: [1, 2, 3, 4, 5], weekends: [0, 6] };
+/* Правило повтора: kind "week" (по умолчанию) — по дням недели (days);
+   "biweek" — те же дни, но через неделю, считая от недели anchor; "month" — monthDay-го числа (31 = последний день месяца). */
+const DAY_MS = 864e5;
+const mondayOf = s => { const d = new Date(s + "T12:00:00"); d.setDate(d.getDate() - (d.getDay() + 6) % 7); return d; };
+function ruleDue(r, date) {
+  const kind = r.kind || "week";
+  if (kind === "month") {
+    const d = new Date(date + "T12:00:00"), last = new Date(d.getFullYear(), d.getMonth() + 1, 0).getDate();
+    return d.getDate() === Math.min(r.monthDay || 1, last);
+  }
+  if (!(r.days || []).includes(weekdayOf(date))) return false;
+  if (kind === "biweek") return Math.round((mondayOf(date) - mondayOf(r.anchor || date)) / (7 * DAY_MS)) % 2 === 0;
+  return true;
+}
+function nextDue(r, from = TODAY) {
+  for (let i = 0; i < 70; i++) { const d = iso(shift(new Date(from + "T12:00:00"), i)); if (ruleDue(r, d)) return d; }
+  return null;
+}
+const ruleLabel = r => r.kind === "month" ? (r.monthDay >= 31 ? "раз в месяц, в последний день" : `раз в месяц, ${r.monthDay}-го`)
+  : r.kind === "biweek" ? "раз в 2 недели: " + daysLabel(r.days || []) : daysLabel(r.days || []);
 const WD = ["вс", "пн", "вт", "ср", "чт", "пт", "сб"];
 
+let reopening = false;
 let db = null, view = "today", closing = false, pickerFor = null, recentLoaded = false;
+let editFor = null, editDraft = "";   // редактирование названия: id задачи или "r:"+id правила
 const taskMap = new Map();          // id -> task, merged from two subscriptions
 const rules = new Map();            // повторяющиеся задачи
 let dayToday = null, dayYesterday = null, brief = null, weekReview = null, monthReview = null;
@@ -445,7 +543,11 @@ function el(tag, props = {}, ...kids) {
   return e;
 }
 let toastTimer;
-function toast(msg) { const t = $("#toast"); t.textContent = msg; t.hidden = false; clearTimeout(toastTimer); toastTimer = setTimeout(() => t.hidden = true, 2600); }
+function toast(msg, action) {
+  const t = $("#toast");
+  t.replaceChildren(...[el("span", {}, msg), action ? el("button", { type: "button", onclick: () => { clearTimeout(toastTimer); t.hidden = true; action.fn(); } }, action.label) : null].filter(Boolean));
+  t.hidden = false; clearTimeout(toastTimer); toastTimer = setTimeout(() => t.hidden = true, action ? 7000 : 2600);
+}
 async function write(fn, okMsg) {
   if (!db) { toast("Хранилище недоступно: откройте пульт в claude.ai под своим аккаунтом"); return false; }
   try { await fn(); if (okMsg) toast(okMsg); return true; }
@@ -456,7 +558,7 @@ const fmtDay = s => new Date(s + "T12:00:00").toLocaleDateString("ru-RU", { week
 const fmtTime = ts => ts ? new Date(ts).toLocaleTimeString("ru-RU", { hour: "2-digit", minute: "2-digit" }) : "";
 const weekdayOf = s => new Date(s + "T12:00:00").getDay();
 const daysLabel = days => days.length === 7 ? "каждый день" : days.join() === "1,2,3,4,5" ? "по будням"
-  : days.join() === "0,6" ? "по выходным" : days.map(d => WD[d]).join(", ");
+  : days.join() === "0,6" ? "по выходным" : [...days].sort((a, b) => (a + 6) % 7 - (b + 6) % 7).map(d => WD[d]).join(", ");
 
 /* ---------- header ---------- */
 function renderHeader() {
@@ -466,13 +568,18 @@ function renderHeader() {
   const list = tasksFor(TODAY), done = list.filter(t => t.done).length;
   $("#progress").textContent = list.length ? `${done} из ${list.length} сделано` : "";
   const closed = !!dayToday?.closedAt;
-  $("#endDayBtn").textContent = closed ? "День закрыт" : "Закончил работу";
-  $("#endDayBtn").disabled = closed || closing;
+  const btn = $("#endDayBtn");
+  btn.textContent = closed ? "Открыть день" : "Закончил работу";
+  btn.title = closed ? `День закрыт${dayToday.closedAt ? " в " + fmtTime(dayToday.closedAt) : ""}. Нажми, чтобы доделать задачи` : "";
+  btn.classList.toggle("primary", !closed);
+  btn.disabled = closing || reopening;
 }
 
 /* ---------- tasks ---------- */
 const live = () => [...taskMap.values()].filter(t => !t.deleted);
-const byOrder = (a, b) => (a.done - b.done) || ((b.urgent ? 1 : 0) - (a.urgent ? 1 : 0)) || ((a.createdAt || 0) - (b.createdAt || 0));
+// порядок: сделанные вниз, срочные вверх, внутри — ручной порядок (order), по умолчанию время создания
+const sortKey = t => t.order ?? t.createdAt ?? 0;
+const byOrder = (a, b) => (a.done - b.done) || ((b.urgent ? 1 : 0) - (a.urgent ? 1 : 0)) || (sortKey(a) - sortKey(b));
 const tasksFor = date => live().filter(t => t.date === date).sort(byOrder);
 const overdueTasks = () => live().filter(t => !t.done && t.date && t.date < TODAY).sort((a, b) => a.date.localeCompare(b.date) || byOrder(a, b));
 const backlog = () => live().filter(t => !t.done && t.date === LATER).sort(byOrder);
@@ -498,11 +605,41 @@ async function moveTask(t, date) {
 }
 // повторяющуюся задачу не удаляем, а прячем: иначе пульт создаст её снова
 async function removeTask(t) {
+  const { id, _scope, ...data } = t;
+  let calGone = false;
   if (t.calEventId) {
-    try { await calCall("delete_event", { eventId: t.calEventId }); }
+    try { await calCall("delete_event", { eventId: t.calEventId }); calGone = true; }
     catch (e) { toast("Задача удалена, но событие в календаре осталось. " + calErr(e)); }
   }
-  return write(() => t.recurringId ? ref(t.id).update({ deleted: true, ...CAL_CLEAR }) : ref(t.id).delete());
+  if (editFor && editFor.endsWith(t.id)) { editFor = null; editDraft = ""; }
+  const ok = await write(() => t.recurringId ? ref(t.id).update({ deleted: true, ...CAL_CLEAR }) : ref(t.id).delete());
+  if (ok) toast("Задача удалена", { label: "Вернуть", fn: () => restoreTask(t.id, data, calGone) });
+  return ok;
+}
+// отмена удаления: возвращаем задачу с тем же id, событие в календаре ставим заново
+async function restoreTask(id, data, calGone) {
+  const back = calGone ? { ...data, ...CAL_CLEAR } : data;
+  const ok = await write(() => data.recurringId ? ref(id).update({ deleted: false, ...(calGone ? CAL_CLEAR : {}) }) : ref(id).set(back), "Задача возвращена");
+  if (!ok || !calGone || !data.calStart || !data.date) return;
+  try {
+    const r = await calCall("create_event", { summary: data.title, startTime: calTime(data.date, data.calStart), endTime: calTime(data.date, data.calEnd), description: "Задача из «Пульта дня»" });
+    await write(() => ref(id).update({ calEventId: pickEventId(r?.payload) || null, calStart: data.calStart, calEnd: data.calEnd }));
+  } catch (e) { toast("Задача возвращена, но в календарь её надо поставить заново. " + calErr(e)); }
+}
+async function removeRule(r) {
+  const { id, ...data } = r;
+  if (editFor && editFor.endsWith(r.id)) { editFor = null; editDraft = ""; }
+  if (daysFor === r.id) daysFor = null;
+  const ok = await write(() => db.collection("recurring").doc(id).delete());
+  if (ok) toast("Повтор отключён", { label: "Вернуть", fn: () => write(() => db.collection("recurring").doc(id).set(data), "Повтор возвращён") });
+}
+/* ручной порядок: меняемся местами с соседом из той же группы (сделано/срочно) */
+async function moveInList(t, list, dir) {
+  const i = list.indexOf(t), n = list[i + dir];
+  if (!n || n.done !== t.done || !!n.urgent !== !!t.urgent) return;
+  let a = sortKey(t), b = sortKey(n);
+  if (a === b) b = a + dir;
+  await write(async () => { await ref(t.id).update({ order: b }); await ref(n.id).update({ order: a }); });
 }
 
 /* календарь: выбор окна по 15 минут */
@@ -556,7 +693,7 @@ async function dropFromCal(t) {
 function sampleErr(e) {
   switch (e?.code) {
     case "not_granted": case "sampling_disabled": case "not_declared": case "capability_disabled": case "capability_removed":
-      sampleOff = true; return "Пульту не разрешено обращаться к Claude, разбивка на шаги отключена";
+      sampleOff = true; renderPlan?.(); return "Пульту не разрешено обращаться к Claude, подсказки Claude отключены";
     case "rate_limited": return "Слишком много запросов. Попробуй чуть позже";
     case "session_expired": return "Нужно заново войти в claude.ai";
     case "refused": return "Claude не стал разбирать эту задачу. Переформулируй её";
@@ -617,12 +754,24 @@ const setDone = (t, on) => write(() => ref(t.id).update(on
 
 /* главная задача дня: поле focus = дата, на которую задача главная */
 const focusTask = () => tasksFor(TODAY).find(t => t.focus === TODAY);
-async function setFocus(t) {
-  const on = t.focus !== TODAY;
+// главная задача бывает на сегодня и на завтра; повторное нажатие снимает
+async function setFocus(t, date = t.date === TOMORROW ? TOMORROW : TODAY) {
+  const on = t.focus !== date;
   await write(async () => {
-    for (const x of live().filter(x => x.focus === TODAY && x.id !== t.id)) await ref(x.id).update({ focus: null });
-    await ref(t.id).update({ focus: on ? TODAY : null });
-  }, on ? "Это главное на сегодня" : null);
+    for (const x of live().filter(x => x.focus === date && x.id !== t.id)) await ref(x.id).update({ focus: null });
+    await ref(t.id).update({ focus: on ? date : null });
+  }, on ? (date === TODAY ? "Это главное на сегодня" : "Это главное на завтра") : null);
+}
+function renderFocusNext() {
+  const box = $("#focusNext");
+  const list = tasksFor(TOMORROW), f = list.find(t => t.focus === TOMORROW);
+  box.hidden = view !== "tomorrow" || (!f && !list.some(t => !t.done));
+  if (box.hidden) return;
+  box.className = "focus-next" + (f ? "" : " unset");
+  box.replaceChildren(...(f
+    ? [el("span", { class: "eyebrow" }, "★ Главное на завтра"), el("b", {}, f.title),
+       el("button", { class: "icon-btn", type: "button", onclick: () => setFocus(f, TOMORROW) }, "снять")]
+    : [el("span", {}, "Главное на завтра не выбрано. Нажми ☆ у задачи, которую завтра надо сделать в любом случае. Утром она встанет наверх.")]));
 }
 function renderFocus() {
   const box = $("#focus"), f = focusTask();
@@ -642,7 +791,175 @@ function renderFocus() {
       el("label", { class: "focus-title", for: "focusCb" }, f.title)),
     el("button", { class: "icon-btn", type: "button", onclick: () => setFocus(f) }, "снять"));
 }
-function taskRow(t, mode) {
+/* правка названия прямо в строке: Enter — сохранить, Esc — отмена */
+function startEdit(key, title) { editFor = key; editDraft = title; pickerFor = null; renderTasks(); }
+function cancelEdit() { editFor = null; editDraft = ""; renderTasks(); }
+async function saveEdit(key, old, save, multiline) {
+  const title = multiline ? editDraft.trim() : editDraft.replace(/\s+/g, " ").trim();
+  if (!title && !multiline) { toast("Название не может быть пустым"); return; }
+  if (title === old) { cancelEdit(); return; }
+  editFor = null; editDraft = "";
+  if (!(await save(title))) { editFor = key; editDraft = title; }
+  renderTasks();
+}
+function editBox(key, old, save) {
+  const inp = el("input", { type: "text", class: "edit-input", "data-edit": key, value: editDraft, "aria-label": "Название задачи",
+    oninput: e => { editDraft = e.target.value; },
+    onkeydown: e => {
+      if (e.key === "Enter" && !e.isComposing) { e.preventDefault(); saveEdit(key, old, save); }
+      else if (e.key === "Escape") { e.preventDefault(); cancelEdit(); }
+    } });
+  return el("span", { class: "edit" }, inp,
+    el("button", { class: "btn small primary", type: "button", onclick: () => saveEdit(key, old, save) }, "Сохранить"),
+    el("button", { class: "icon-btn", type: "button", onclick: cancelEdit }, "отмена"));
+}
+/* заметка к задаче: ссылки кликабельны, Ctrl/Cmd+Enter — сохранить */
+function noteView(text) {
+  const box = el("div", { class: "note" });
+  for (const part of text.split(/(https?:\/\/[^\s<>"']+)/g)) {
+    if (/^https?:\/\//.test(part)) {
+      const url = part.replace(/[.,;:!?)»]+$/, ""), tail = part.slice(url.length);
+      box.append(el("a", { href: url, target: "_blank", rel: "noopener noreferrer" }, url), tail);
+    } else if (part) box.append(part);
+  }
+  return box;
+}
+function noteBox(t) {
+  const key = "n:" + t.id, save = note => write(() => ref(t.id).update({ note }), note ? "Заметка сохранена" : "Заметка удалена");
+  const ta = el("textarea", { "data-edit": key, "aria-label": "Заметка к задаче", placeholder: "Ссылка, подробности, с чего начать…",
+    oninput: e => { editDraft = e.target.value; },
+    onkeydown: e => {
+      if (e.key === "Enter" && (e.ctrlKey || e.metaKey)) { e.preventDefault(); saveEdit(key, t.note || "", save, true); }
+      else if (e.key === "Escape") { e.preventDefault(); cancelEdit(); }
+    } });
+  ta.value = editDraft;
+  return el("div", { class: "sub" }, ta, el("div", { class: "sub-row" },
+    el("button", { class: "btn small primary", type: "button", onclick: () => saveEdit(key, t.note || "", save, true) }, "Сохранить"),
+    t.note ? el("button", { class: "btn small", type: "button", onclick: () => { editDraft = ""; saveEdit(key, t.note, save, true); } }, "Удалить заметку") : null,
+    el("button", { class: "icon-btn", type: "button", onclick: cancelEdit }, "отмена"),
+    el("span", { class: "status kbd-hint" }, "Ctrl+Enter — сохранить")));
+}
+/* настройка повтора: каждую неделю / раз в 2 недели / раз в месяц */
+let daysFor = null, daysDraft = {};
+const WEEK = [1, 2, 3, 4, 5, 6, 0];
+function daysBox(r) {
+  const dr = daysDraft, kind = dr.kind;
+  const kindSel = el("select", { class: "field", "aria-label": "Как часто", onchange: e => { dr.kind = e.target.value; renderTasks(); } },
+    [["week", "каждую неделю"], ["biweek", "раз в 2 недели"], ["month", "раз в месяц"]].map(([v, l]) => el("option", { value: v, selected: v === kind }, l)));
+  const body = [];
+  if (kind === "month") {
+    const sel = el("select", { class: "field", "aria-label": "Число месяца", onchange: e => { dr.monthDay = Number(e.target.value); } },
+      Array.from({ length: 31 }, (_, i) => i + 1).map(n => el("option", { value: n, selected: n === dr.monthDay }, n === 31 ? "последнее" : n + "-го")));
+    body.push(el("div", { class: "sub-row" }, kindSel, "число:", sel));
+  } else {
+    body.push(el("div", { class: "sub-row" }, kindSel,
+      el("div", { class: "days", role: "group", "aria-label": "Дни повтора" }, WEEK.map(d =>
+        el("label", {}, el("input", { type: "checkbox", checked: dr.days.includes(d),
+          onchange: e => { dr.days = e.target.checked ? [...dr.days, d] : dr.days.filter(x => x !== d); } }), WD[d])))));
+    if (kind === "biweek") body.push(el("label", { class: "status" },
+      el("input", { type: "checkbox", checked: dr.anchor && mondayOf(dr.anchor) > mondayOf(TODAY), onchange: e => { dr.anchor = e.target.checked ? iso(shift(now, 7)) : TODAY; } }),
+      "начать со следующей недели"));
+  }
+  const save = async () => {
+    const patch = { kind: dr.kind };
+    if (dr.kind === "month") Object.assign(patch, { monthDay: dr.monthDay || 1, days: [] });
+    else {
+      const days = WEEK.filter(d => dr.days.includes(d)).sort((a, b) => a - b);
+      if (!days.length) { toast("Выберите хотя бы один день"); return; }
+      Object.assign(patch, { days, anchor: dr.anchor || TODAY });
+    }
+    const next = nextDue({ ...r, ...patch });
+    if (await write(() => db.collection("recurring").doc(r.id).update(patch), `Повтор: ${ruleLabel({ ...r, ...patch })}` + (next ? `, ближайший ${fmtDate(next)}` : "")))
+      { daysFor = null; renderTasks(); }
+  };
+  return el("div", { class: "sub" }, ...body, el("div", { class: "sub-row" },
+    el("button", { class: "btn small primary", type: "button", onclick: save }, "Сохранить"),
+    el("button", { class: "icon-btn", type: "button", onclick: () => { daysFor = null; renderTasks(); } }, "отмена")));
+}
+function openRuleEditor(r) {
+  if (daysFor === r.id) { daysFor = null; renderTasks(); return; }
+  const first = Number(iso(now).slice(8));
+  daysFor = r.id;
+  daysDraft = { kind: r.kind || "week", days: [...(r.days || [])], monthDay: r.monthDay || first, anchor: r.anchor || TODAY };
+  if (!daysDraft.days.length) daysDraft.days = [weekdayOf(TODAY)];
+  renderTasks();
+}
+/* оценка времени */
+const EST_OPTIONS = [15, 30, 45, 60, 90, 120, 180];
+const fmtMin = m => m < 60 ? `${m} мин` : m % 60 ? `${Math.floor(m / 60)} ч ${m % 60} мин` : `${m / 60} ч`;
+const calMin = t => t.calStart && t.calEnd ? toMin(t.calEnd) - toMin(t.calStart) : 0;
+const estOf = t => t.est || calMin(t) || 0;
+// сколько осталось: оценка минус уже отработанные помидоры
+const leftOf = t => Math.max(0, estOf(t) - (t.pomos || 0) * POMO.focus.min);
+let estFor = null, moreFor = null;
+function estBox(t) {
+  return el("div", { class: "picker" }, el("span", { class: "status" }, "Сколько займёт:"),
+    EST_OPTIONS.map(m => el("button", { class: "btn small" + (t.est === m ? " primary" : ""), type: "button",
+      onclick: () => { estFor = null; write(() => ref(t.id).update({ est: m })); } }, fmtMin(m))),
+    t.est ? el("button", { class: "icon-btn", type: "button", onclick: () => { estFor = null; write(() => ref(t.id).update({ est: null })); } }, "убрать") : null,
+    el("button", { class: "icon-btn", type: "button", onclick: () => { estFor = null; renderTasks(); } }, "закрыть"));
+}
+const DAY_END = 22 * 60;            // до какого часа считаем рабочий день
+const MEETING_MIN = 60;             // у встреч из сводки нет конца: считаем по часу
+function renderLoad() {
+  const box = $("#load");
+  if (view === "later" || !db) { box.hidden = true; return; }
+  const date = view === "today" ? TODAY : TOMORROW;
+  const open = tasksFor(date).filter(t => !t.done);
+  const withEst = open.filter(t => estOf(t)), noEst = open.length - withEst.length;
+  const need = withEst.reduce((s, t) => s + leftOf(t), 0);
+  if (!withEst.length) {
+    box.hidden = !open.length;
+    box.className = "load";
+    box.replaceChildren(el("span", {}, "Поставь задачам оценку времени в меню «⋯», и здесь появится загрузка дня."));
+    return;
+  }
+  const parts = [el("span", {}, view === "today" ? "Осталось " : "На завтра ", el("b", {}, "~" + fmtMin(need)), noEst ? ` · без оценки: ${noEst}` : "")];
+  let over = false;
+  if (view === "today") {
+    const clock = new Date(), cur = DEMO ? 9 * 60 : clock.getHours() * 60 + clock.getMinutes();   // демо всегда утром
+    const taskTitles = new Set(open.filter(t => t.calStart).map(t => t.title.trim().toLowerCase()));
+    // встречи из сводки, которые ещё впереди и не являются нашими же задачами с временем
+    const meetings = (brief?.sources?.calendar === "ok" ? brief.calendar || [] : [])
+      .filter(e => e.time && toMin(e.time) + MEETING_MIN > cur && !taskTitles.has((e.title || "").trim().toLowerCase()));
+    const busy = meetings.reduce((s, e) => s + Math.min(MEETING_MIN, toMin(e.time) + MEETING_MIN - Math.max(cur, toMin(e.time))), 0);
+    const free = Math.max(0, DAY_END - cur - busy);
+    over = need > free;
+    parts.push(el("span", { title: `До ${DAY_END / 60}:00, встречи из календаря по ${MEETING_MIN} мин` },
+      "свободно ", el("b", {}, "~" + fmtMin(Math.round(free / 5) * 5)), meetings.length ? ` (встреч впереди: ${meetings.length})` : ""));
+    if (over) parts.push(el("span", {}, `не влезает ~${fmtMin(Math.round((need - free) / 5) * 5)}: перенеси несрочное на завтра`));
+  }
+  box.hidden = false;
+  box.className = "load" + (over ? " over" : "");
+  box.replaceChildren(...parts);
+}
+async function renameTask(t, title) {
+  const ok = await write(() => ref(t.id).update({ title }), "Задача изменена");
+  // событие в календаре переименовываем вместе с задачей
+  if (ok && t.calEventId) {
+    try { await calCall("update_event", { eventId: t.calEventId, summary: title }); }
+    catch (e) { toast("Задача изменена, но в календаре осталось старое название. " + calErr(e)); }
+  }
+  return ok;
+}
+async function renameRule(r, title) {
+  const ok = await write(() => db.collection("recurring").doc(r.id).update({ title }), "Повтор изменён");
+  // сегодняшний экземпляр, если он ещё не сделан, тоже переименовываем
+  if (ok) for (const t of live()) if (t.recurringId === r.id && !t.done && t.date >= TODAY && t.title === r.title) await renameTask(t, title);
+  return ok;
+}
+// перерисовка не должна сбивать курсор в поле правки
+function keepEditFocus(fn) {
+  const a = document.activeElement, key = a?.dataset?.edit, s = a?.selectionStart, e = a?.selectionEnd;
+  fn();
+  if (!editFor) return;
+  const inp = document.querySelector(`[data-edit="${CSS.escape(editFor)}"]`);
+  if (!inp || inp === document.activeElement) return;
+  inp.focus();
+  if (key === editFor && s != null) inp.setSelectionRange(s, e); else inp.setSelectionRange(inp.value.length, inp.value.length);
+}
+
+function taskRow(t, mode, list) {
   const meta = el("span", { class: "meta" });
   const stale = !t.done && (t.movedCount || 0) >= STALE_AFTER;
   if (t.urgent) meta.append(el("span", { class: "chip hot" }, "срочно"));
@@ -654,39 +971,66 @@ function taskRow(t, mode) {
   if (!t.done) {
     if (stale && sample && !sampleOff) meta.append(el("button", { class: "icon-btn on", type: "button", "aria-expanded": stepsFor === t.id,
       onclick: () => { if (stepsFor === t.id) { stepsFor = null; renderTasks(); } else splitTask(t); } }, "разбить на шаги"));
-    if (mcp && t.date && t.date >= TODAY) meta.append(el("button", { class: "icon-btn", type: "button", "aria-expanded": calFor === t.id,
-      onclick: () => { calFor = calFor === t.id ? null : t.id; renderTasks(); } }, t.calStart ? "время" : "в календарь"));
-    if (t.date === TODAY && mode !== "overdue") {
-      const on = t.focus === TODAY;
+    if ((t.date === TODAY || t.date === TOMORROW) && mode !== "overdue") {
+      const on = t.focus === t.date, day = t.date === TODAY ? "на сегодня" : "на завтра";
       meta.append(el("button", { class: "icon-btn star" + (on ? " on" : ""), type: "button", "aria-pressed": on,
-        title: on ? "Больше не главное" : "Сделать главным на сегодня", "aria-label": on ? "Больше не главное" : "Сделать главным на сегодня",
+        title: on ? "Больше не главное" : "Сделать главным " + day, "aria-label": on ? "Больше не главное" : "Сделать главным " + day,
         onclick: () => setFocus(t) }, on ? "★" : "☆"));
     }
     if (mode !== "overdue") meta.append(el("button", { class: "icon-btn" + (t.urgent ? " on" : ""), type: "button", title: t.urgent ? "Снять срочность" : "Пометить срочной",
       "aria-label": t.urgent ? "Снять срочность" : "Пометить срочной", onclick: () => write(() => ref(t.id).update({ urgent: !t.urgent })) }, "!"));
+    if (t.date === TODAY && mode !== "overdue" && !(pomo.task === t.id && pomo.mode === "focus")) meta.append(el("button", { class: "icon-btn", type: "button",
+      title: "Помидор на эту задачу", "aria-label": "Запустить помидор на эту задачу", onclick: () => pomoFor(t) }, "▶ 🍅"));
     if (t.date === TODAY) meta.append(el("button", { class: "icon-btn", type: "button", onclick: () => moveTask(t, TOMORROW) }, "→ завтра"));
     else meta.append(el("button", { class: "icon-btn", type: "button", onclick: () => moveTask(t, TODAY) }, "← сегодня"));
-    meta.append(el("button", { class: "icon-btn", type: "button", "aria-expanded": pickerFor === t.id,
-      onclick: () => { pickerFor = pickerFor === t.id ? null : t.id; renderTasks(); } }, "дата"));
+  }
+  const editing = editFor === t.id, noting = editFor === "n:" + t.id, more = moreFor === t.id;
+  meta.append(el("button", { class: "icon-btn", type: "button", title: "Ещё действия", "aria-label": "Ещё действия", "aria-expanded": more,
+    onclick: () => { moreFor = more ? null : t.id; renderTasks(); } }, "⋯"));
+  if (list && !t.done) {
+    const i = list.indexOf(t), same = n => n && !n.done && !!n.urgent === !!t.urgent;
+    meta.prepend(el("span", { class: "order" },
+      el("button", { class: "icon-btn", type: "button", title: "Выше", "aria-label": "Переместить выше", disabled: !same(list[i - 1]), onclick: () => moveInList(t, list, -1) }, "↑"),
+      el("button", { class: "icon-btn", type: "button", title: "Ниже", "aria-label": "Переместить ниже", disabled: !same(list[i + 1]), onclick: () => moveInList(t, list, 1) }, "↓")));
   }
   meta.append(el("button", { class: "icon-btn", type: "button", title: "Удалить", "aria-label": "Удалить задачу", onclick: () => removeTask(t) }, "×"));
+  // чипы оценки и помидоров — перед кнопками
+  const chips = [];
+  if (pomo.task === t.id && pomo.mode === "focus") chips.push(el("span", { class: "chip pom" + (pomo.endAt && pomo.mode === "focus" ? " live" : ""), id: "pomoLive", title: "Помидор идёт на эту задачу" }, "🍅 " + mmss(pomoLeft())));
+  else if (t.pomos) chips.push(el("span", { class: "chip pom", title: "Помидоров на задачу" }, "🍅" + t.pomos));
+  if (estOf(t)) chips.push(el("span", { class: "chip est", title: t.est ? "Оценка времени" : "По времени в календаре" },
+    t.done || !t.pomos ? "~" + fmtMin(estOf(t)) : `ещё ~${fmtMin(leftOf(t))}`));
+  meta.prepend(...chips);
+  const pick = fn => () => { moreFor = null; fn(); renderTasks(); };
+  const moreRow = !more ? null : el("div", { class: "more" },
+    el("button", { class: "icon-btn", type: "button", onclick: pick(() => startEdit(t.id, t.title)) }, "✎ изменить"),
+    el("button", { class: "icon-btn" + (t.note ? " has-note" : ""), type: "button", onclick: pick(() => startEdit("n:" + t.id, t.note || "")) }, t.note ? "заметка ✓" : "заметка"),
+    t.done ? null : el("button", { class: "icon-btn", type: "button", onclick: pick(() => { estFor = t.id; }) }, t.est ? `оценка: ${fmtMin(t.est)}` : "оценка времени"),
+    t.done ? null : el("button", { class: "icon-btn", type: "button", onclick: pick(() => { pickerFor = t.id; }) }, "дата"),
+    !t.done && mcp && t.date && t.date >= TODAY ? el("button", { class: "icon-btn", type: "button", onclick: pick(() => { calFor = t.id; }) }, t.calStart ? "время в календаре" : "в календарь") : null,
+    el("button", { class: "icon-btn", type: "button", onclick: () => { moreFor = null; renderTasks(); } }, "закрыть"));
   const cb = el("input", { type: "checkbox", id: "cb-" + t.id, "aria-label": "Сделано", checked: t.done,
     onchange: e => setDone(t, e.target.checked) });
-  const row = el("li", { class: "task" + (t.done ? " done" : "") + (stale ? " stale" : "") }, cb, el("label", { class: "t", for: "cb-" + t.id }, t.title), meta);
+  const row = el("li", { class: "task" + (t.done ? " done" : "") + (stale ? " stale" : "") }, cb,
+    editing ? editBox(t.id, t.title, title => renameTask(t, title)) : el("label", { class: "t", for: "cb-" + t.id }, t.title), meta, moreRow);
+  if (!t.done && estFor === t.id) row.append(estBox(t));
   if (pickerFor === t.id) {
     const d = el("input", { type: "date", class: "field", min: TODAY, value: t.date && t.date >= TODAY ? t.date : TOMORROW, "aria-label": "Новая дата" });
     row.append(el("div", { class: "picker" }, d,
       el("button", { class: "btn small", type: "button", onclick: () => { if (d.value) { pickerFor = null; moveTask(t, d.value); } } }, "Перенести"),
       el("button", { class: "btn small", type: "button", onclick: () => { pickerFor = null; moveTask(t, LATER); } }, "Потом, без даты")));
   }
+  if (t.note && !noting) row.append(noteView(t.note));
+  if (noting) row.append(noteBox(t));
   if (!t.done && calFor === t.id && mcp && t.date && t.date >= TODAY) row.append(calPanel(t));
   if (!t.done && stepsFor === t.id && sample) row.append(stepsPanel(t));
   return row;
 }
-const group = (title, items, mode) => el("div", { class: "group" }, el("div", { class: "group-title" }, title), el("ul", { class: "tasks" }, items.map(t => taskRow(t, mode))));
+const group = (title, items, mode) => el("div", { class: "group" }, el("div", { class: "group-title" }, title), el("ul", { class: "tasks" }, items.map(t => taskRow(t, mode, items))));
 const emptyNote = text => el("div", { class: "empty" }, text);
 
-function renderTasks() {
+function renderTasks() { keepEditFocus(renderTasksNow); }
+function renderTasksNow() {
   const area = $("#taskArea");
   if (view === "later") {
     const parts = [];
@@ -696,17 +1040,23 @@ function renderTasks() {
     for (const [d, items] of byDate) parts.push(group(fmtDay(d), items, "later"));
     if (rules.size) parts.push(el("div", { class: "group" }, el("div", { class: "group-title" }, "Повторяющиеся"),
       el("ul", { class: "tasks" }, [...rules.values()].sort((a, b) => a.createdAt - b.createdAt).map(r =>
-        el("li", { class: "task" }, el("span", { class: "chip rep" }, "↻"), el("span", { class: "t" }, r.title,
-          el("span", { class: "status" }, " · " + daysLabel(r.days || []))),
-          el("span", { class: "meta" }, el("button", { class: "icon-btn", type: "button", title: "Больше не повторять",
-            onclick: () => write(() => db.collection("recurring").doc(r.id).delete(), "Повтор отключён") }, "×")))))));
+        el("li", { class: "task" }, el("span", { class: "chip rep" }, "↻"),
+          editFor === "r:" + r.id ? editBox("r:" + r.id, r.title, title => renameRule(r, title))
+            : el("span", { class: "t" }, r.title, el("span", { class: "status" }, " · " + ruleLabel(r) + (r.kind === "month" || r.kind === "biweek" ? (n => n ? `, ближайший ${fmtDate(n)}` : "")(nextDue(r)) : ""))),
+          el("span", { class: "meta" }, editFor === "r:" + r.id ? null : el("button", { class: "icon-btn", type: "button", title: "Изменить название",
+            "aria-label": "Изменить повторяющуюся задачу", onclick: () => startEdit("r:" + r.id, r.title) }, "✎"),
+            el("button", { class: "icon-btn", type: "button", "aria-expanded": daysFor === r.id, onclick: () => openRuleEditor(r) }, "повтор"),
+            el("button", { class: "icon-btn", type: "button", title: "Больше не повторять", "aria-label": "Больше не повторять",
+            onclick: () => removeRule(r) }, "×")),
+          daysFor === r.id ? daysBox(r) : null)))));
     area.replaceChildren(...(parts.length ? parts : [emptyNote(db ? "Здесь живут задачи без даты, задачи на дальние дни и повторяющиеся." : "Задачи загружаются…")]));
   } else {
     const list = tasksFor(view === "today" ? TODAY : TOMORROW);
-    area.replaceChildren(list.length ? el("ul", { class: "tasks" }, list.map(t => taskRow(t, view)))
+    area.replaceChildren(list.length ? el("ul", { class: "tasks" }, list.map(t => taskRow(t, view, list)))
       : emptyNote(!db ? "Задачи хранятся в вашем аккаунте claude.ai и появятся здесь после загрузки."
         : view === "today" ? "На сегодня задач нет. Добавьте первую строкой выше." : "На завтра пока пусто."));
   }
+  renderLoad(); renderPomoTask(); renderPlan(); renderFocusNext();
   const movable = tasksFor(TODAY).filter(t => !t.done && !t.urgent);
   $("#bulk").hidden = view !== "today" || movable.length === 0;
   $("#moveNonUrgent").textContent = `Перенести несрочные на завтра (${movable.length})`;
@@ -762,6 +1112,26 @@ function deadlineChip(m) {
 }
 const studyRef = id => db.collection("study").doc(id);
 const STUDY_PREVIEW = 5;            // сколько ближайших модулей видно без раскрытия
+let studyFit = STUDY_PREVIEW;       // на широком экране «Учёба» показывает больше, чтобы закрыть пустоту рядом с «Ритмом» и «Помодоро»
+let fitQueued = false;
+function fitStudy() {
+  if (fitQueued) return;
+  fitQueued = true;
+  requestAnimationFrame(() => {
+    fitQueued = false;
+    const row = document.querySelector(".row2"), item = document.querySelector("#studyArea li");
+    let want = STUDY_PREVIEW;
+    if (row && item && !studyAll && getComputedStyle(row).gridTemplateColumns.split(" ").length > 1) {
+      row.classList.add("measuring");                       // естественная высота колонок, без растяжения
+      const [left, right] = [...row.children].map(c => c.getBoundingClientRect().height);
+      row.classList.remove("measuring");
+      const step = item.getBoundingClientRect().height + 2;
+      want = Math.max(STUDY_PREVIEW, studyFit + Math.floor((left - right) / step));
+    }
+    if (want !== studyFit) { studyFit = want; renderStudy(); }
+  });
+}
+addEventListener("resize", fitStudy);
 let studyAll = false;
 function renderStudy() {
   $("#studyCourse").textContent = profile.course || "";
@@ -771,7 +1141,9 @@ function renderStudy() {
   if (list.length) $("#studyProgress").replaceChildren(el("div", { class: "meter" }, el("i", { style: `width:${Math.round(done / list.length * 100)}%` })),
     el("span", { class: "status" }, `готово ${done} из ${list.length}`));
   if (!list.length) { $("#studyArea").replaceChildren(emptyNote(db ? "Добавь модули курса с дедлайнами: пульт подсветит те, что горят." : "Модули загружаются…")); return; }
-  const shown = studyAll ? list : list.filter(m => !m.done).slice(0, STUDY_PREVIEW);
+  // сначала открытые модули; если на широком экране остаётся место — ещё и пройденные (список уже отсортирован: открытые первыми)
+  const openN = list.filter(m => !m.done).length;
+  const shown = studyAll ? list : list.slice(0, studyFit > STUDY_PREVIEW ? studyFit : Math.min(studyFit, openN));
   const hidden = list.length - shown.length;
   const more = hidden > 0 || studyAll
     ? el("button", { class: "icon-btn", type: "button", onclick: () => { studyAll = !studyAll; renderStudy(); } }, studyAll ? "свернуть" : `показать все (ещё ${hidden})`)
@@ -791,6 +1163,7 @@ function renderStudy() {
         onchange: e => write(() => studyRef(m.id).update({ done: e.target.checked, doneAt: e.target.checked ? Date.now() : null })) }),
       el("label", { class: "t", for: "st-" + m.id }, m.title), meta);
   })), more);
+  fitStudy();
 }
 $("#studyForm").addEventListener("submit", async e => {
   e.preventDefault();
@@ -825,28 +1198,275 @@ for (const b of document.querySelectorAll(".tabs button")) b.addEventListener("c
 $("#newWhen").addEventListener("change", e => { $("#newDate").hidden = e.target.value !== "date"; if (!$("#newDate").value) $("#newDate").value = TOMORROW; });
 $("#newDate").min = TODAY;
 
+/* ---------- умный ввод одной строкой ----------
+   Слова про дату, время, срочность и повтор распознаются только в начале и в конце строки,
+   чтобы «Сделать 2 часа зарядки» не превратилось в оценку времени. */
+const WD_WORDS = { "пн": 1, "понедельник": 1, "вт": 2, "вторник": 2, "ср": 3, "среда": 3, "среду": 3, "чт": 4, "четверг": 4,
+  "пт": 5, "пятница": 5, "пятницу": 5, "сб": 6, "суббота": 6, "субботу": 6, "вс": 0, "воскресенье": 0 };
+const MONTH_STEMS = ["янв", "фев", "мар", "апр", "ма", "июн", "июл", "авг", "сен", "окт", "ноя", "дек"];
+const addDays = n => iso(shift(new Date(TODAY + "T12:00:00"), n));
+function nextWeekday(wd) { const d = new Date(TODAY + "T12:00:00"); let k = (wd - d.getDay() + 7) % 7 || 7; return addDays(k); }
+function dayMonth(dd, mm, yy) {
+  const y0 = new Date(TODAY + "T12:00:00").getFullYear();
+  let y = yy ? (yy < 100 ? 2000 + yy : yy) : y0;
+  const d = new Date(y, mm - 1, dd, 12);
+  if (d.getMonth() !== mm - 1) return null;
+  if (!yy && iso(d) < TODAY) d.setFullYear(y + 1);
+  return iso(d);
+}
+const QUICK_RULES = [
+  { k: "urgent", re: "(?:!+|срочно)", f: () => true },
+  { k: "date", re: "сегодня", f: () => TODAY },
+  { k: "date", re: "завтра", f: () => TOMORROW },
+  { k: "date", re: "послезавтра", f: () => addDays(2) },
+  { k: "date", re: "(?:потом|когда-нибудь|без даты)", f: () => LATER },
+  { k: "date", re: "(?:в|во)\\s+(пн|вт|ср|чт|пт|сб|вс|понедельник|вторник|среду|четверг|пятницу|субботу|воскресенье)", f: m => nextWeekday(WD_WORDS[m[1]]) },
+  { k: "date", re: "через\\s+(\\d{1,2})\\s+(?:дн[яеей]*|день)", f: m => addDays(Number(m[1])) },
+  { k: "date", re: "через\\s+неделю", f: () => addDays(7) },
+  { k: "date", re: "(\\d{1,2})\\.(\\d{1,2})(?:\\.(\\d{2,4}))?", f: m => dayMonth(+m[1], +m[2], m[3] ? +m[3] : 0) },
+  { k: "date", re: "(\\d{1,2})\\s+(янв|фев|мар|апр|ма|июн|июл|авг|сен|окт|ноя|дек)[а-я]*", f: m => dayMonth(+m[1], MONTH_STEMS.indexOf(m[2]) + 1, 0) },
+  { k: "est", re: "(\\d+)\\s*ч\\s*(\\d+)\\s*м?(?:ин)?", f: m => +m[1] * 60 + +m[2] },
+  { k: "est", re: "(\\d+(?:[.,]\\d+)?)\\s*(?:ч|час|часа|часов)", f: m => Math.round(parseFloat(m[1].replace(",", ".")) * 60) },
+  { k: "est", re: "(\\d+)\\s*(?:м|мин|минут[аы]?)", f: m => +m[1] },
+  { k: "repeat", re: "(?:каждый день|ежедневно)", f: () => "daily" },
+  { k: "repeat", re: "по будням", f: () => "weekdays" },
+  { k: "repeat", re: "по выходным", f: () => "weekends" },
+  { k: "repeat", re: "(?:каждую неделю|еженедельно|раз в неделю)", f: () => "weekly" },
+  { k: "repeat", re: "(?:раз в 2 недели|раз в две недели|каждые 2 недели)", f: () => "biweekly" },
+  { k: "repeat", re: "(?:раз в месяц|ежемесячно|каждый месяц)", f: () => "monthly" },
+].map(r => ({ ...r, head: new RegExp("^" + r.re + "(?=\\s|$)", "iu"), tail: new RegExp("(?:^|\\s)" + r.re + "$", "iu") }));
+function parseQuick(raw) {
+  let rest = raw.trim().replace(/\s+/g, " ");
+  const out = {};
+  for (let changed = true; changed;) {
+    changed = false;
+    for (const r of QUICK_RULES) {
+      if (r.k in out) continue;
+      for (const side of ["head", "tail"]) {
+        const m = rest.match(r[side]);
+        if (!m) continue;
+        const left = (side === "head" ? rest.slice(m[0].length) : rest.slice(0, m.index)).trim();
+        if (!left) continue;                     // название не может исчезнуть целиком
+        const v = r.f(m.slice(side === "tail" ? 0 : 0).map((x, i) => i === 0 ? x : x && x.toLowerCase()));
+        if (v == null || (r.k === "est" && !(v > 0 && v <= 12 * 60))) continue;
+        out[r.k] = v; rest = left; changed = true; break;
+      }
+    }
+  }
+  out.title = Object.keys(out).length ? rest.charAt(0).toUpperCase() + rest.slice(1) : rest;
+  return out;
+}
+const REPEAT_NAMES = { daily: "каждый день", weekdays: "по будням", weekends: "по выходным", weekly: "раз в неделю", biweekly: "раз в 2 недели", monthly: "раз в месяц" };
+const dateName = d => d === LATER ? "потом, без даты" : d === TODAY ? "сегодня" : d === TOMORROW ? "завтра" : fmtDay(d);
+function renderQuick() {
+  const q = parseQuick($("#newTask").value), box = $("#quickPreview");
+  const chips = [];
+  if ("date" in q) chips.push(el("span", { class: "chip cal" }, "📅 " + dateName(q.date)));
+  if (q.est) chips.push(el("span", { class: "chip est" }, "~" + fmtMin(q.est)));
+  if (q.urgent) chips.push(el("span", { class: "chip hot" }, "срочно"));
+  if (q.repeat) chips.push(el("span", { class: "chip rep" }, "↻ " + REPEAT_NAMES[q.repeat]));
+  box.replaceChildren(...(chips.length ? [el("span", {}, "Распознано:"), el("b", {}, "«" + q.title + "»"), ...chips] : []));
+}
+$("#newTask").addEventListener("input", renderQuick);
+
+/* ---------- Claude планирует день: сегодня или завтра ---------- */
+let plan = null;                    // {date, status, data, msg, nums, picks}
+let planCtl = null;
+const planDate = () => view === "tomorrow" ? TOMORROW : TODAY;
+function planContext(date) {
+  const isToday = date === TODAY, next = iso(shift(new Date(date + "T12:00:00"), 1));
+  const own = tasksFor(date).filter(t => !t.done);
+  // кандидаты, которые можно взять в этот день
+  const extra = isToday
+    ? overdueTasks().map(t => ({ t, where: `хвост с ${fmtDate(t.date)}` }))
+    : [...tasksFor(TODAY).filter(t => !t.done).map(t => ({ t, where: "не сделано сегодня" })),
+       ...overdueTasks().map(t => ({ t, where: `хвост с ${fmtDate(t.date)}` })),
+       ...backlog().slice(0, 12).map(t => ({ t, where: "в «Потом», без даты" }))];
+  const items = [...own.map(t => ({ t, where: isToday ? "сегодня" : "завтра" })), ...extra];
+  const nums = new Map(items.map((x, i) => [i + 1, x.t]));
+  const clock = new Date(), cur = DEMO ? "09:00" : `${pad(clock.getHours())}:${pad(clock.getMinutes())}`;
+  const line = ({ t, where }, i) => [`${i + 1}. «${t.title}»`, where,
+    t.urgent ? "срочно" : null, t.focus === date ? "главная на этот день" : null,
+    t.est ? `оценка ${t.est} мин` : null, t.pomos ? `уже ${t.pomos} помидор(а) по 25 мин` : null,
+    t.calStart ? `в календаре ${t.calStart}–${t.calEnd}` : null, t.movedCount ? `переносилась ${t.movedCount} раз` : null,
+    t.recurringId ? "повторяющаяся" : null, t.note ? `заметка: ${t.note.slice(0, 120).replace(/\s+/g, " ")}` : null].filter(Boolean).join("; ");
+  const meetings = isToday && brief?.sources?.calendar === "ok" ? (brief.calendar || []).map(e => `${e.time || "весь день"} ${e.title}`) : [];
+  const studyOpen = [...study.values()].filter(m => !m.done && m.deadline).sort((a, b) => a.deadline.localeCompare(b.deadline)).slice(0, 4)
+    .map(m => `«${m.title}» до ${fmtDate(m.deadline)}` + (m.progress ? `, готово ${m.progress}%` : ""));
+  const head = isToday
+    ? `Ты помогаешь человеку спланировать остаток рабочего дня в его личном списке дел. Сейчас ${cur}, ${fmtDay(TODAY)}. Рабочий день до ${DAY_END / 60}:00. Сделано сегодня: ${tasksFor(TODAY).filter(t => t.done).length}.
+Встречи в календаре сегодня: ${meetings.length ? meetings.join("; ") : "нет данных"}.
+На завтра уже запланировано задач: ${tasksFor(TOMORROW).filter(t => !t.done).length}.`
+    : `Ты помогаешь человеку заранее спланировать завтрашний день в его личном списке дел. Завтра ${fmtDay(TOMORROW)}, день целиком свободен для планирования, примерно с 9:00 до ${DAY_END / 60}:00.
+Встречи на завтра неизвестны: ориентируйся на задачи, у которых указано время в календаре. Сегодня сделано задач: ${tasksFor(TODAY).filter(t => t.done).length}.`;
+  const prompt = `${head}
+Учёба, ближайшие дедлайны: ${studyOpen.length ? studyOpen.join("; ") : "нет"}.
+
+Задачи (номер, название, где лежит, детали):
+${items.map(line).join("\n")}
+
+Составь реалистичный план на ${isToday ? "остаток сегодняшнего дня" : "завтра"}:
+- order: номера задач на ${isToday ? "сегодня" : "завтра"} в том порядке, в котором их лучше делать (сначала срочные, дальше важное, лёгкое ставь между тяжёлым). Включай только то, что реально успеть${isToday ? ", с учётом встреч и оценок" : " за день, с учётом оценок; нормальная загрузка — 5–7 часов работы"}.
+- estimates: оценка в минутах для задач БЕЗ оценки (кратно 15, от 15 до 240).
+- move: задачи ${isToday ? "на сегодня" : "на завтра"}, которые не влезут или не нужны, куда их деть: "next" (на следующий день) или "later" (без даты), с коротким объяснением.${isToday ? "" : " Задачи, которые не на завтра, в move не включай."}
+- pull: номера задач ${isToday ? "из хвостов с прошлых дней" : "из других мест (не сделано сегодня, хвосты, «Потом»)"}, которые стоит взять на ${isToday ? "сегодня" : "завтра"} (только если есть время).
+- focus: номер одной главной задачи дня или null, если главная уже выбрана и выбор хороший.
+- summary: 2–3 коротких предложения по-русски на «ты»: что главное, где риск не успеть, с чего начать.
+Не придумывай новых задач. Задача из move не должна быть в order. Задачу из pull включи и в order.${isToday ? " Хвосты, которые не берёшь, можно отправить в move." : ""}
+Ответь только JSON: {"summary": "...", "order": [1,2], "estimates": {"3": 30}, "move": [{"n": 4, "to": "next", "why": "..."}], "pull": [5], "focus": 2}`;
+  return { prompt, nums, next };
+}
+async function makePlan(fresh) {
+  const date = planDate();
+  if (!sample || sampleOff) {
+    plan = { date, status: "error", msg: sampleOff
+      ? "Пульту не разрешено обращаться к Claude. Разреши это в меню доступа пульта (значок над страницей на claude.ai) и обнови страницу."
+      : "Claude недоступен в этом окне. Открой пульт на claude.ai под своим аккаунтом. Если уже там, проверь в меню доступа пульта, что ему разрешено обращаться к Claude, и обнови страницу." };
+    renderPlan(); return;
+  }
+  const { prompt, nums, next } = planContext(date);
+  if (!nums.size) { toast(date === TODAY ? "На сегодня нет открытых задач: планировать нечего" : "Нет задач ни на завтра, ни в хвостах, ни в «Потом»"); return; }
+  planCtl?.abort(); planCtl = new AbortController();
+  plan = { date, status: "loading", nums };
+  renderPlan();
+  try {
+    const res = await sample.json(prompt, { modelTier: "default", cache: !fresh, signal: planCtl.signal });
+    const data = cleanPlan(res, nums, date);
+    if (!data.order.length && !data.move.length && !data.pull.length) throw { code: "invalid_json" };
+    plan = { date, next, status: "ready", nums, data, picks: { order: data.order.length > 1, est: Object.keys(data.estimates).length > 0, focus: data.focus != null,
+      move: new Set(data.move.map(m => m.n)), pull: new Set(data.pull) } };
+  } catch (e) {
+    if (e?.code === "cancelled" || e?.name === "AbortError") plan = null;
+    else plan = { date, status: "error", msg: sampleErr(e).replace("Не получилось придумать шаги", "Не получилось составить план") };
+  }
+  renderPlan();
+}
+// ответ Claude проверяем: только существующие номера, без повторов, в разумных границах
+function cleanPlan(res, nums, date) {
+  const r = res && typeof res === "object" ? res : {};
+  const ok = n => nums.has(Number(n)) ? Number(n) : null;
+  const seen = new Set(), uniq = arr => (Array.isArray(arr) ? arr : []).map(ok).filter(n => n != null && !seen.has(n) && seen.add(n));
+  const canMove = n => date === TODAY || nums.get(n).date === date;     // на завтра двигаем только завтрашние
+  const move = (Array.isArray(r.move) ? r.move : []).map(m => ({ n: ok(m?.n), to: m?.to === "later" ? "later" : "next", why: String(m?.why || "").slice(0, 200) }))
+    .filter(m => m.n != null && canMove(m.n) && !seen.has(m.n) && seen.add(m.n));
+  const pullRaw = Array.isArray(r.pull) ? r.pull.map(ok).filter(n => n != null && nums.get(n).date !== date) : [];
+  const order = uniq(r.order);
+  const pull = pullRaw.filter(n => order.includes(n) || !seen.has(n));
+  for (const n of pull) if (!order.includes(n)) order.push(n);
+  // в порядке не может быть чужих задач, которые не берём
+  const orderOk = order.filter(n => nums.get(n).date === date || pull.includes(n));
+  const estimates = {};
+  for (const [k, v] of Object.entries(r.estimates && typeof r.estimates === "object" ? r.estimates : {})) {
+    const n = ok(k), m = Math.round(Number(v) / 15) * 15;
+    if (n != null && !nums.get(n).est && m >= 15 && m <= 240 && orderOk.includes(n)) estimates[n] = m;
+  }
+  const focus = ok(r.focus);
+  return { summary: String(r.summary || "").slice(0, 600), order: orderOk, move, pull,
+    estimates, focus: focus != null && orderOk.includes(focus) && nums.get(focus).focus !== date ? focus : null };
+}
+async function setFocusOn(t, date) {
+  await write(async () => {
+    for (const x of live().filter(x => x.focus === date && x.id !== t.id)) await ref(x.id).update({ focus: null });
+    await ref(t.id).update({ focus: date });
+  });
+}
+async function applyPlan() {
+  const { data: d, nums, picks, date, next } = plan;
+  const T = n => nums.get(n);
+  plan = { ...plan, status: "applying" }; renderPlan();
+  let changes = 0;
+  const ok = await write(async () => {
+    for (const n of d.pull) if (picks.pull.has(n) && T(n).date !== date) { await moveTask(T(n), date); changes++; }
+    for (const m of d.move) if (picks.move.has(m.n)) { await moveTask(T(m.n), m.to === "later" ? LATER : next); changes++; }
+    if (picks.est) for (const [n, m] of Object.entries(d.estimates)) if (!d.pull.includes(+n) || picks.pull.has(+n)) { await ref(T(+n).id).update({ est: m }); changes++; }
+    if (picks.order) {
+      const base = Date.now();
+      const order = d.order.filter(n => !d.pull.includes(n) || picks.pull.has(n));
+      for (const [i, n] of order.entries()) await ref(T(n).id).update({ order: base + i });
+      changes++;
+    }
+    if (picks.focus && d.focus != null && (!d.pull.includes(d.focus) || picks.pull.has(d.focus))) {
+      await setFocusOn(T(d.focus), date);
+      changes++;
+    }
+  });
+  plan = null; renderPlan();
+  if (ok) toast(changes ? (date === TODAY ? "План на сегодня применён" : "План на завтра применён") : "Ничего не выбрано");
+}
+function renderPlan() {
+  const area = $("#planArea");
+  if (!db || view === "later") { area.replaceChildren(); return; }
+  const date = planDate(), isToday = date === TODAY;
+  if (!plan || plan.date !== date) {
+    const open = tasksFor(date).filter(t => !t.done).length;
+    area.replaceChildren(el("div", { class: "plan-bar" },
+      el("button", { class: "btn small", type: "button", onclick: () => makePlan(false) }, isToday ? "✨ Спланировать день с Claude" : "✨ Спланировать завтра с Claude"),
+      el("span", { class: "status" }, !sample || sampleOff ? "Claude пока недоступен: нажми, чтобы узнать почему"
+        : isToday ? (open ? "порядок, оценки и что перенести" : "добавь задачи на сегодня, и Claude их распланирует")
+        : "порядок, оценки, что взять из «Потом» и хвостов")));
+    return;
+  }
+  const close = el("button", { class: "icon-btn", type: "button", onclick: () => { planCtl?.abort(); plan = null; renderPlan(); } }, "закрыть");
+  if (plan.status === "loading") { area.replaceChildren(el("div", { class: "plan" }, el("div", { class: "sub-row" }, el("span", { class: "status" },
+    isToday ? "Claude смотрит на задачи, встречи и дедлайны…" : "Claude собирает завтрашний день…"), close))); return; }
+  if (plan.status === "error") { area.replaceChildren(el("div", { class: "plan" }, el("div", { class: "err" }, plan.msg),
+    el("div", { class: "sub-row" }, sampleOff || !sample ? null : el("button", { class: "btn small", type: "button", onclick: () => makePlan(true) }, "Ещё раз"), close))); return; }
+  const { data: d, nums, picks } = plan, T = n => nums.get(n);
+  const busy = plan.status === "applying";
+  const check = (on, set, text, why) => el("label", {}, el("input", { type: "checkbox", checked: on, disabled: busy, onchange: e => set(e.target.checked) }),
+    el("span", {}, text, why ? el("div", { class: "why" }, why) : null));
+  const setOf = (s, n) => v => { v ? s.add(n) : s.delete(n); };
+  const from = t => t.date === LATER ? "из «Потом»" : t.date === TODAY && !isToday ? "с сегодня" : "из хвостов";
+  const total = d.order.reduce((s, n) => s + (d.estimates[n] || estOf(T(n))), 0);
+  const secs = [];
+  if (d.summary) secs.push(el("div", {}, d.summary));
+  if (d.order.length) secs.push(el("div", { class: "sec" }, el("div", { class: "sec-title" }, (isToday ? "Порядок на сегодня" : "Порядок на завтра") + (total ? ` · ~${fmtMin(total)}` : "")),
+    el("ol", {}, d.order.map(n => el("li", {}, T(n).title,
+      d.estimates[n] ? el("span", { class: "why" }, ` · ~${fmtMin(d.estimates[n])}`) : estOf(T(n)) ? el("span", { class: "why" }, ` · ~${fmtMin(estOf(T(n)))}`) : null,
+      d.pull.includes(n) ? el("span", { class: "why" }, " · " + from(T(n))) : null,
+      d.focus === n ? el("span", { class: "why" }, " · ★ главное") : null))),
+    d.order.length > 1 ? check(picks.order, v => { picks.order = v; }, "Расставить задачи в этом порядке") : null));
+  const opts = [];
+  if (Object.keys(d.estimates).length) opts.push(check(picks.est, v => { picks.est = v; }, `Поставить оценки времени (${Object.keys(d.estimates).length})`));
+  if (d.focus != null) opts.push(check(picks.focus, v => { picks.focus = v; }, `Сделать главным: «${T(d.focus).title}»`));
+  for (const n of d.pull) opts.push(check(picks.pull.has(n), setOf(picks.pull, n), `Взять на ${isToday ? "сегодня" : "завтра"} ${from(T(n))}: «${T(n).title}»`));
+  for (const m of d.move) opts.push(check(picks.move.has(m.n), setOf(picks.move, m.n),
+    `${m.to === "later" ? "Убрать в «Потом»" : isToday ? "Перенести на завтра" : `Перенести на ${fmtDate(plan.next)}`}: «${T(m.n).title}»`, m.why));
+  if (opts.length) secs.push(el("div", { class: "sec" }, el("div", { class: "sec-title" }, "Что поменять"), ...opts));
+  area.replaceChildren(el("div", { class: "plan", role: "region", "aria-label": isToday ? "План дня от Claude" : "План на завтра от Claude" },
+    el("h3", {}, isToday ? "✨ План дня" : `✨ План на завтра, ${fmtDay(TOMORROW)}`), ...secs,
+    el("div", { class: "sub-row" },
+      el("button", { class: "btn small primary", type: "button", disabled: busy, onclick: applyPlan }, busy ? "Применяю…" : "Применить выбранное"),
+      el("button", { class: "btn small", type: "button", disabled: busy, onclick: () => makePlan(true) }, "Другой вариант"),
+      close)));
+}
+
 $("#addForm").addEventListener("submit", async e => {
   e.preventDefault();
-  const title = $("#newTask").value.trim();
+  const q = parseQuick($("#newTask").value);
+  const title = q.title;
   if (!title) return;
   const when = $("#newWhen").value;
   let date = when === "today" ? TODAY : when === "tomorrow" ? TOMORROW : when === "date" ? $("#newDate").value : LATER;
-  if (when === "date" && !date) { toast("Выберите дату"); return; }
-  const urgent = $("#newUrgent").checked, repeat = $("#newRepeat").value;
+  if ("date" in q) date = q.date;
+  else if (when === "date" && !date) { toast("Выберите дату"); return; }
+  const urgent = $("#newUrgent").checked || !!q.urgent, repeat = q.repeat || $("#newRepeat").value, est = q.est || null;
   let ok;
   if (repeat) {
     const start = date || TODAY;
-    const days = REPEAT_DAYS[repeat] || [weekdayOf(start)];
+    const rule = { title, urgent, est, createdAt: Date.now() };
+    if (repeat === "monthly") Object.assign(rule, { kind: "month", days: [], monthDay: Number(start.slice(8)) });
+    else Object.assign(rule, { kind: repeat === "biweekly" ? "biweek" : "week", days: REPEAT_DAYS[repeat] || [weekdayOf(start)], anchor: start });
     const rid = db ? db.collection("recurring").doc().id : "";
     ok = await write(async () => {
-      await db.collection("recurring").doc(rid).set({ title, urgent, days, createdAt: Date.now() });
-      if (days.includes(weekdayOf(start)))
-        await ref(`r-${rid}-${start}`).set({ title, date: start, done: false, urgent, createdAt: Date.now(), doneAt: null, movedCount: 0, recurringId: rid });
-    }, `Повтор: ${daysLabel(days)}`);
+      await db.collection("recurring").doc(rid).set(rule);
+      if (ruleDue(rule, start))
+        await ref(`r-${rid}-${start}`).set({ title, date: start, done: false, urgent, est, createdAt: Date.now(), doneAt: null, movedCount: 0, recurringId: rid });
+    }, `Повтор: ${ruleLabel(rule)}`);
   } else {
-    ok = await write(() => db.collection("tasks").add({ title, date, done: false, urgent, createdAt: Date.now(), doneAt: null, movedCount: 0 }));
+    ok = await write(() => db.collection("tasks").add({ title, date, done: false, urgent, est, createdAt: Date.now(), doneAt: null, movedCount: 0 }));
   }
-  if (ok) { $("#newTask").value = ""; $("#newUrgent").checked = false; $("#newRepeat").value = ""; }
+  if (ok) { $("#newTask").value = ""; $("#newUrgent").checked = false; $("#newRepeat").value = ""; renderQuick(); }
 });
 
 async function moveMany(list, date) { for (const t of list) await moveTask(t, date); }
@@ -861,13 +1481,12 @@ $("#pullAll").addEventListener("click", async () => { const list = overdueTasks(
 const ensuring = new Set();
 async function ensureRecurring() {
   if (!db || !recentLoaded) return;
-  const wd = now.getDay();
   for (const r of rules.values()) {
-    if (!(r.days || []).includes(wd) || ensuring.has(r.id)) continue;
+    if (!ruleDue(r, TODAY) || ensuring.has(r.id)) continue;
     const id = `r-${r.id}-${TODAY}`;
     if (taskMap.has(id) || live().some(t => t.recurringId === r.id && t.date === TODAY)) continue;
     ensuring.add(r.id);
-    await write(() => ref(id).set({ title: r.title, date: TODAY, done: false, urgent: !!r.urgent, createdAt: Date.now(), doneAt: null, movedCount: 0, recurringId: r.id }));
+    await write(() => ref(id).set({ title: r.title, date: TODAY, done: false, urgent: !!r.urgent, est: r.est || null, createdAt: Date.now(), doneAt: null, movedCount: 0, recurringId: r.id }));
   }
 }
 
@@ -886,7 +1505,25 @@ function renderCloseDay() {
   }
   body.replaceChildren(...parts);
 }
-$("#endDayBtn").addEventListener("click", () => { closing = true; $("#closeDay").hidden = false; renderCloseDay(); renderHeader(); });
+/* открыть закрытый день снова: задачи, которые ушли на завтра при закрытии, возвращаются на сегодня */
+async function reopenDay() {
+  const d = dayToday;
+  if (!d || reopening) return;
+  const byId = new Set(d.movedIds || []), byTitle = new Set(d.movedIds ? [] : d.moved || []);   // старые отчёты без id — по названию
+  const back = live().filter(t => !t.done && t.date === TOMORROW && (byId.has(t.id) || byTitle.has(t.title)));
+  reopening = true; renderHeader();
+  try {
+    if (!(await write(() => db.collection("days").doc(TODAY).delete()))) return;
+    for (const t of back) {
+      await moveTask(t, TODAY);
+      // закрытие засчитало перенос, а мы его отменили
+      await write(() => ref(t.id).update({ movedCount: Math.max(0, (t.movedCount || 1) - 1) }));
+    }
+    toast(back.length ? `День снова открыт. Вернул на сегодня: ${back.length}` : "День снова открыт");
+  } finally { reopening = false; renderHeader(); }
+}
+$("#endDayBtn").addEventListener("click", () => { if (dayToday?.closedAt) { reopenDay(); return; }
+  closing = true; $("#closeDay").hidden = false; renderCloseDay(); renderHeader(); });
 $("#cancelClose").addEventListener("click", () => { closing = false; $("#closeDay").hidden = true; renderHeader(); });
 $("#confirmClose").addEventListener("click", async () => {
   const all = tasksFor(TODAY);
@@ -897,8 +1534,8 @@ $("#confirmClose").addEventListener("click", async () => {
     date: TODAY, closedAt: Date.now(), source: "button",
     done: all.filter(t => t.done).map(t => t.title),
     open: all.filter(t => !t.done && !ids.has(t.id)).map(t => t.title),
-    moved: moved.map(t => t.title) }), withName("День закрыт. Хорошего вечера") + "!");
-  if (ok) { closing = false; $("#closeDay").hidden = true; }
+    moved: moved.map(t => t.title), movedIds: moved.map(t => t.id) }), withName("День закрыт. Хорошего вечера") + "!");
+  if (ok) { closing = false; $("#closeDay").hidden = true; renderHeader(); }
 });
 
 function reportNode(d, withReopen) {
@@ -909,8 +1546,8 @@ function reportNode(d, withReopen) {
   if ((d.moved || []).length) kids.push(el("div", {}, el("span", { class: "muted" }, "Перенесено: "), d.moved.join(" · ")));
   if ((d.open || []).length) kids.push(el("div", {}, el("span", { class: "muted" }, "Осталось: "), d.open.join(" · ")));
   if (d.note) kids.push(el("div", { class: "muted" }, d.note));
-  if (withReopen) kids.push(el("div", {}, el("button", { class: "icon-btn", type: "button",
-    onclick: () => write(() => db.collection("days").doc(TODAY).delete(), "День снова открыт") }, "Открыть день снова")));
+  if (withReopen) kids.push(el("div", { class: "sub-row" }, el("button", { class: "btn small", type: "button", disabled: reopening, onclick: reopenDay }, "Открыть день снова"),
+    (d.moved || []).length ? el("span", { class: "status" }, "перенесённые на завтра вернутся на сегодня") : null));
   return kids;
 }
 function renderReport() {
@@ -922,6 +1559,7 @@ function renderReport() {
 /* ---------- brief ---------- */
 function renderBrief() {
   const b = brief;
+  renderLoad();
   $("#briefStamp").textContent = b?.generatedAt ? `обновлено в ${fmtTime(b.generatedAt)}` : "";
 
   const y = dayYesterday;
@@ -985,7 +1623,7 @@ const POMO = { focus: { label: "Фокус", min: 25 }, short: { label: "Пер�
 const POMO_CYCLE = 4;               // после стольких помидоров длинный перерыв
 const POMO_KEY = "pult.pomodoro";
 let pomoDay = null, pomoTick = null, pomoAudio = null;
-let pomo = { mode: "focus", endAt: null, left: POMO.focus.min * 60000, streak: 0, module: "" };
+let pomo = { mode: "focus", endAt: null, left: POMO.focus.min * 60000, streak: 0, module: "", task: "" };
 try { Object.assign(pomo, JSON.parse(localStorage.getItem(POMO_KEY) || "{}")); } catch {}
 if (pomo.day !== TODAY) { pomo.day = TODAY; pomo.streak = 0; }   // серия до длинного перерыва считается в пределах дня
 let pomoLoaded = false, studyLoaded = false;
@@ -1054,8 +1692,12 @@ async function pomoRecord() {
   if (!ref) return;
   const modules = { ...(pomoDay?.modules || {}) };
   if (pomo.module) modules[pomo.module] = (modules[pomo.module] || 0) + 1;
-  const next = { date: TODAY, count: (pomoDay?.count || 0) + 1, minutes: (pomoDay?.minutes || 0) + POMO.focus.min, modules };
+  const tasks = { ...(pomoDay?.tasks || {}) };
+  const t = pomo.task && taskMap.get(pomo.task);
+  if (t) tasks[t.id] = (tasks[t.id] || 0) + 1;
+  const next = { date: TODAY, count: (pomoDay?.count || 0) + 1, minutes: (pomoDay?.minutes || 0) + POMO.focus.min, modules, tasks };
   await write(() => pomoDay ? ref.update(next) : ref.set(next));
+  if (t) await write(() => db.collection("tasks").doc(t.id).update({ pomos: (t.pomos || 0) + 1 }));
 }
 function pomoFinish(late) {
   clearInterval(pomoTick); pomoTick = null;
@@ -1070,14 +1712,38 @@ function pomoRun() {
   clearInterval(pomoTick);
   pomoTick = setInterval(() => { if (pomoLeft() <= 0) pomoFinish(false); else renderPomoTime(); }, 250);
 }
+/* помидор на конкретную задачу: кнопка ▶ 🍅 в строке задачи */
+function pomoFor(t) {
+  ensureAudio();
+  pomo.task = t.id;
+  if (pomo.mode !== "focus") pomoSetMode("focus");
+  if (!pomo.endAt) pomoToggle(); else { pomoSave(); renderPomo(); }
+  toast(`🍅 ${POMO.focus.min} минут: ${t.title}`);
+  renderTasks();
+}
+function renderPomoTask() {
+  const bound = pomo.task && taskMap.get(pomo.task);
+  if (pomo.task && recentLoaded && (!bound || bound.done || bound.deleted)) { pomo.task = ""; pomoSave(); }
+  const bt = pomo.task && taskMap.get(pomo.task);
+  if ($("#pomoTask").hidden === !!bt) fitStudy();
+  $("#pomoTask").hidden = !bt;
+  if (bt) $("#pomoTask").replaceChildren(el("span", { class: "status" }, "Задача:"), el("b", {}, bt.title),
+    el("span", { class: "status" }, `помидоров: ${bt.pomos || 0}` + (estOf(bt) ? ` · ещё ~${fmtMin(leftOf(bt))}` : "")),
+    el("button", { class: "icon-btn", type: "button", onclick: pomoUnbind }, "отвязать"));
+  return bt;
+}
+function pomoUnbind() { pomo.task = ""; pomoSave(); renderPomo(); renderTasks(); }
 function renderPomoTime() {
   const left = pomoLeft();
   $("#pomoTime").textContent = mmss(left);
+  const chip = document.getElementById("pomoLive");
+  if (chip) chip.textContent = "🍅 " + mmss(left);
   if (titleBlink) return;
   document.title = pomo.endAt ? `${mmss(left)} · ${POMO[pomo.mode].label}` : "Пульт дня";
 }
 function renderPomo() {
   const running = !!pomo.endAt;
+  if (pomo.task) renderTasks();      // чип таймера в строке задачи
   $("#pomo").className = "pomo" + (pomo.mode === "focus" ? "" : " break") + (running ? " running" : "");
   $("#pomoModes").replaceChildren(...Object.entries(POMO).map(([k, v]) => el("button", { type: "button", role: "tab",
     "aria-selected": String(pomo.mode === k), onclick: () => { if (pomo.mode !== k) pomoSetMode(k); } }, v.label)));
@@ -1086,12 +1752,13 @@ function renderPomo() {
   $("#pomoStart").textContent = running ? "Пауза" : full ? "Старт" : "Продолжить";
   const open = [...study.values()].filter(m => !m.done).sort((a, b) => (a.deadline || "9999").localeCompare(b.deadline || "9999"));
   if (studyLoaded && pomo.module && !open.some(m => m.id === pomo.module)) { pomo.module = ""; pomoSave(); }
-  $("#pomoModule").replaceChildren(el("option", { value: "" }, "Без привязки к модулю"),
+  $("#pomoModule").replaceChildren(el("option", { value: "" }, "Без модуля"),
     ...open.map(m => el("option", { value: m.id, selected: m.id === pomo.module }, m.title)));
+  const bt = renderPomoTask();
   const c = pomoDay?.count || 0, onMod = pomo.module ? pomoDay?.modules?.[pomo.module] || 0 : 0;
   $("#pomoToday").textContent = c ? `сегодня ${c} · ${pomoDay.minutes} мин` : "сегодня пока ни одного";
   $("#pomoHint").textContent = pomo.mode === "focus"
-    ? (pomo.module ? `На этот модуль сегодня: ${onMod}. ` : "") + "25 минут только учёба, без телефона и вкладок."
+    ? (bt ? `${POMO.focus.min} минут только на эту задачу, без телефона и вкладок.` : (pomo.module ? `На этот модуль сегодня: ${onMod}. ` : "") + "25 минут только учёба, без телефона и вкладок.")
     : "Встань, разомнись, попей воды. Экран можно не трогать.";
   renderPomoTime();
 }

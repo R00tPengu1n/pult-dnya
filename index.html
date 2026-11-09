@@ -138,6 +138,15 @@ ul.tasks { list-style: none; margin: 0; padding: 0; display: grid; gap: 2px }
 .sub label { display: flex; gap: 8px; align-items: flex-start }
 .sub label input { margin-top: 3px }
 .sub .err { color: var(--hot); font-size: 13px }
+.sub .tabs { justify-self: start; max-width: 100%; flex-wrap: wrap }
+.sub .tabs button { font-size: 13px; padding: 4px 10px }
+.sub .tabs button[aria-selected="true"] { background: var(--dusk-soft); color: var(--dusk); box-shadow: none; font-weight: 600 }
+.stepper { display: inline-flex; align-items: center; border: 1px solid var(--line); border-radius: 8px; overflow: hidden }
+.stepper button { border: 0; background: var(--bg); width: 28px; height: 28px; font-size: 16px; line-height: 1 }
+.stepper button:disabled { opacity: .4; cursor: default }
+.stepper output { min-width: 2.4em; text-align: center; font: 500 13px var(--f-mono); font-variant-numeric: tabular-nums }
+.copy-days { display: flex; gap: 4px; flex-wrap: wrap }
+.copy-days span { font: 500 11px/1 var(--f-mono); padding: 5px 7px; border-radius: 6px; background: var(--dusk-soft); color: var(--dusk); font-variant-numeric: tabular-nums }
 .bulk { display: flex; gap: 8px; flex-wrap: wrap; align-items: center; border-top: 1px dashed var(--line); padding-top: 12px }
 .empty { color: var(--muted); font-size: 14px; padding: 6px }
 .overdue { background: var(--accent-soft); border-radius: 12px; padding: 12px 14px; display: grid; gap: 8px }
@@ -465,10 +474,12 @@ const RECENT_FROM = iso(shift(now, -2));
 const LATER = "";                   // дата задачи из бэклога
 const REPEAT_DAYS = { daily: [0, 1, 2, 3, 4, 5, 6], weekdays: [1, 2, 3, 4, 5], weekends: [0, 6] };
 /* Правило повтора: kind "week" (по умолчанию) — по дням недели (days);
-   "biweek" — те же дни, но через неделю, считая от недели anchor; "month" — monthDay-го числа (31 = последний день месяца). */
+   "biweek" — те же дни, но через неделю, считая от недели anchor; "month" — monthDay-го числа (31 = последний день месяца).
+   from — с какой даты правило действует; раньше неё задачи не создаются. */
 const DAY_MS = 864e5;
 const mondayOf = s => { const d = new Date(s + "T12:00:00"); d.setDate(d.getDate() - (d.getDay() + 6) % 7); return d; };
 function ruleDue(r, date) {
+  if (r.from && date < r.from) return false;
   const kind = r.kind || "week";
   if (kind === "month") {
     const d = new Date(date + "T12:00:00"), last = new Date(d.getFullYear(), d.getMonth() + 1, 0).getDate();
@@ -899,6 +910,112 @@ function estBox(t) {
     t.est ? el("button", { class: "icon-btn", type: "button", onclick: () => { estFor = null; write(() => ref(t.id).update({ est: null })); } }, "убрать") : null,
     el("button", { class: "icon-btn", type: "button", onclick: () => { estFor = null; renderTasks(); } }, "закрыть"));
 }
+/* правило повтора из формы или из копии задачи; repeat — ключ из REPEAT_NAMES, start — первая дата */
+function makeRule(fields, repeat, start) {
+  const rule = { ...fields, from: start, createdAt: Date.now() };
+  if (repeat === "monthly") return Object.assign(rule, { kind: "month", days: [], monthDay: Number(start.slice(8)) });
+  return Object.assign(rule, { kind: repeat === "biweekly" ? "biweek" : "week", days: REPEAT_DAYS[repeat] || [weekdayOf(start)], anchor: start });
+}
+
+/* копия задачи: ещё раз на другой день, на несколько дней подряд или повтором */
+let copyFor = null, copyDraft = {};
+const COPY_REPEATS = ["daily", "weekdays", "weekends", "weekly", "biweekly", "monthly"];
+const COPY_MAX = 14;
+// копии начинаются со следующего дня после задачи, но не раньше сегодня
+const copyStart = t => !t.date || t.date < TODAY ? TODAY : iso(shift(new Date(t.date + "T12:00:00"), 1));
+const shortDay = d => `${WD[weekdayOf(d)]} ${Number(d.slice(8))}`;
+const onDay = d => d === LATER ? "без даты" : "на " + (d === TODAY ? "сегодня" : d === TOMORROW ? "завтра" : fmtDate(d));
+const repeatName = (k, start) => k === "weekly" ? `раз в неделю, ${WD[weekdayOf(start)]}` : k === "biweekly" ? `раз в 2 недели, ${WD[weekdayOf(start)]}`
+  : k === "monthly" ? `раз в месяц, ${Number(start.slice(8))}-го` : REPEAT_NAMES[k];
+function copyDates(dr) {
+  const out = [];
+  for (let d = new Date(dr.start + "T12:00:00"); out.length < dr.count; d = shift(d, 1))
+    if (!dr.weekdays || d.getDay() % 6) out.push(iso(d));
+  return out;
+}
+function openCopy(t) {
+  const start = copyStart(t);
+  copyFor = t.id;
+  copyDraft = { mode: "once", date: start, start, count: 3, weekdays: false, repeat: "daily",
+    from: t.date && t.date >= TODAY ? t.date : TODAY, markDone: false };
+}
+async function copyTo(t, dates, markDone) {
+  const ids = dates.map(() => db ? db.collection("tasks").doc().id : "");
+  const base = Date.now();
+  const ok = await write(async () => {
+    for (const [i, date] of dates.entries())
+      await ref(ids[i]).set({ title: t.title, date, done: false, urgent: !!t.urgent, est: t.est || null, ...(t.note ? { note: t.note } : {}),
+        createdAt: base + i, doneAt: null, movedCount: 0 });
+  });
+  if (!ok) return;
+  const finish = markDone && !t.done && t.date === TODAY;
+  if (finish) await setDone(t, true);
+  copyFor = null; renderTasks();
+  const msg = dates.length === 1 ? `Копия ${onDay(dates[0])}` : `${dates.length} ${plural(dates.length, ["копия", "копии", "копий"])}: ${fmtDate(dates[0])} – ${fmtDate(dates.at(-1))}`;
+  toast(msg, { label: "Отменить", fn: () => write(async () => {
+    for (const id of ids) await ref(id).delete();
+    if (finish) await setDone(t, false);
+  }, "Копирование отменено") });
+}
+// если правило выпадает на день самой задачи, она становится первой в серии, без дубля
+const ownsFirst = (t, rule) => !t.recurringId && !!t.date && t.date >= TODAY && ruleDue(rule, t.date);
+async function copyAsRule(t, repeat, start) {
+  const rule = makeRule({ title: t.title, urgent: !!t.urgent, est: t.est || null }, repeat, start);
+  const rid = db ? db.collection("recurring").doc().id : "";
+  const own = ownsFirst(t, rule);
+  // сначала привязываем задачу: новое правило сразу проверяет, есть ли экземпляр на сегодня
+  const ok = await write(async () => {
+    if (own) await ref(t.id).update({ recurringId: rid });
+    await db.collection("recurring").doc(rid).set(rule);
+  });
+  if (!ok) return;
+  copyFor = null; renderTasks();
+  toast(`Повтор: ${ruleLabel(rule)}`, { label: "Отменить", fn: () => write(async () => {
+    if (own) await ref(t.id).update({ recurringId: null });
+    await db.collection("recurring").doc(rid).delete();
+  }, "Повтор отменён") });
+}
+function copyBox(t) {
+  const dr = copyDraft, redraw = () => renderTasks();
+  const tab = (k, label) => el("button", { type: "button", role: "tab", "aria-selected": String(dr.mode === k), onclick: () => { dr.mode = k; redraw(); } }, label);
+  const dateInput = (key, label) => el("input", { type: "date", class: "field", min: TODAY, value: dr[key], "aria-label": label,
+    onchange: e => { if (e.target.value) { dr[key] = e.target.value; redraw(); } } });
+  const body = [el("div", { class: "tabs", role: "tablist", "aria-label": "Как копировать" },
+    tab("once", "ещё раз"), tab("days", "несколько дней"), tab("repeat", "повторять"))];
+  let action;
+  if (dr.mode === "once") {
+    const quick = [[TODAY, "сегодня"], [TOMORROW, "завтра"], [iso(shift(now, 2)), "послезавтра"]].filter(([d]) => d !== t.date)
+      .map(([d, label]) => el("button", { class: "btn small", type: "button", onclick: () => copyTo(t, [d], dr.markDone) }, label));
+    body.push(el("div", { class: "sub-row" }, ...quick, el("span", { class: "status" }, "или"), dateInput("date", "Дата копии"),
+      el("button", { class: "icon-btn", type: "button", onclick: () => copyTo(t, [LATER], dr.markDone) }, "без даты")));
+    action = el("button", { class: "btn small primary", type: "button", onclick: () => copyTo(t, [dr.date], dr.markDone) }, `Копировать ${onDay(dr.date)}`);
+  } else if (dr.mode === "days") {
+    const dates = copyDates(dr);
+    const step = n => el("button", { type: "button", "aria-label": n > 0 ? "Больше дней" : "Меньше дней", disabled: dr.count + n < 2 || dr.count + n > COPY_MAX,
+      onclick: () => { dr.count += n; redraw(); } }, n > 0 ? "+" : "−");
+    body.push(el("div", { class: "sub-row" }, "с", dateInput("start", "Первый день"),
+      el("span", { class: "stepper" }, step(-1), el("output", { "aria-live": "polite" }, String(dr.count)), step(1)),
+      plural(dr.count, ["день", "дня", "дней"]),
+      el("label", { class: "status" }, el("input", { type: "checkbox", checked: dr.weekdays, onchange: e => { dr.weekdays = e.target.checked; redraw(); } }), "только будни")),
+      el("div", { class: "copy-days", "aria-label": "Даты копий" }, dates.map(d => el("span", {}, shortDay(d)))));
+    action = el("button", { class: "btn small primary", type: "button", onclick: () => copyTo(t, dates, dr.markDone) },
+      `Создать ${dates.length} ${plural(dates.length, ["копию", "копии", "копий"])}`);
+  } else {
+    const rule = makeRule({}, dr.repeat, dr.from), next = [];
+    for (let d = nextDue(rule, dr.from); d && next.length < 4; d = nextDue(rule, iso(shift(new Date(d + "T12:00:00"), 1)))) next.push(d);
+    body.push(el("div", { class: "sub-row" }, COPY_REPEATS.map(k => el("button", { class: "btn small" + (dr.repeat === k ? " primary" : ""), type: "button",
+      "aria-pressed": String(dr.repeat === k), onclick: () => { dr.repeat = k; redraw(); } }, repeatName(k, dr.from)))),
+      el("div", { class: "sub-row" }, "начиная с", dateInput("from", "Начало повтора")),
+      el("div", { class: "copy-days", "aria-label": "Ближайшие даты" }, next.map(d => el("span", {}, shortDay(d))), el("span", {}, "…")),
+      ownsFirst(t, rule) ? el("div", { class: "status" }, "Эта задача станет первой в серии.") : null);
+    action = el("button", { class: "btn small primary", type: "button", onclick: () => copyAsRule(t, dr.repeat, dr.from) }, "Сделать повторяющейся");
+  }
+  const finishable = dr.mode !== "repeat" && !t.done && t.date === TODAY;
+  return el("div", { class: "sub" }, ...body, el("div", { class: "sub-row" }, action,
+    finishable ? el("label", { class: "status" }, el("input", { type: "checkbox", checked: dr.markDone, onchange: e => { dr.markDone = e.target.checked; } }), "а эту отметить сделанной") : null,
+    el("button", { class: "icon-btn", type: "button", onclick: () => { copyFor = null; redraw(); } }, "отмена")));
+}
+
 const DAY_END = 22 * 60;            // до какого часа считаем рабочий день
 const MEETING_MIN = 60;             // у встреч из сводки нет конца: считаем по часу
 function renderLoad() {
@@ -1007,6 +1124,7 @@ function taskRow(t, mode, list) {
     el("button", { class: "icon-btn" + (t.note ? " has-note" : ""), type: "button", onclick: pick(() => startEdit("n:" + t.id, t.note || "")) }, t.note ? "заметка ✓" : "заметка"),
     t.done ? null : el("button", { class: "icon-btn", type: "button", onclick: pick(() => { estFor = t.id; }) }, t.est ? `оценка: ${fmtMin(t.est)}` : "оценка времени"),
     t.done ? null : el("button", { class: "icon-btn", type: "button", onclick: pick(() => { pickerFor = t.id; }) }, "дата"),
+    el("button", { class: "icon-btn", type: "button", onclick: pick(() => openCopy(t)) }, "⧉ копировать"),
     !t.done && mcp && t.date && t.date >= TODAY ? el("button", { class: "icon-btn", type: "button", onclick: pick(() => { calFor = t.id; }) }, t.calStart ? "время в календаре" : "в календарь") : null,
     el("button", { class: "icon-btn", type: "button", onclick: () => { moreFor = null; renderTasks(); } }, "закрыть"));
   const cb = el("input", { type: "checkbox", id: "cb-" + t.id, "aria-label": "Сделано", checked: t.done,
@@ -1020,6 +1138,7 @@ function taskRow(t, mode, list) {
       el("button", { class: "btn small", type: "button", onclick: () => { if (d.value) { pickerFor = null; moveTask(t, d.value); } } }, "Перенести"),
       el("button", { class: "btn small", type: "button", onclick: () => { pickerFor = null; moveTask(t, LATER); } }, "Потом, без даты")));
   }
+  if (copyFor === t.id) row.append(copyBox(t));
   if (t.note && !noting) row.append(noteView(t.note));
   if (noting) row.append(noteBox(t));
   if (!t.done && calFor === t.id && mcp && t.date && t.date >= TODAY) row.append(calPanel(t));
@@ -1454,9 +1573,7 @@ $("#addForm").addEventListener("submit", async e => {
   let ok;
   if (repeat) {
     const start = date || TODAY;
-    const rule = { title, urgent, est, createdAt: Date.now() };
-    if (repeat === "monthly") Object.assign(rule, { kind: "month", days: [], monthDay: Number(start.slice(8)) });
-    else Object.assign(rule, { kind: repeat === "biweekly" ? "biweek" : "week", days: REPEAT_DAYS[repeat] || [weekdayOf(start)], anchor: start });
+    const rule = makeRule({ title, urgent, est }, repeat, start);
     const rid = db ? db.collection("recurring").doc().id : "";
     ok = await write(async () => {
       await db.collection("recurring").doc(rid).set(rule);
@@ -1491,15 +1608,29 @@ async function ensureRecurring() {
 }
 
 /* ---------- end of day ---------- */
+// модуль курса пройден, если сегодня сделана его задача: из кнопки «на сегодня» или с тем же названием
+const normTitle = s => (s || "").trim().toLowerCase().replace(/ё/g, "е").replace(/^учеба:\s*/, "");
+function studyFinishedToday() {
+  const done = tasksFor(TODAY).filter(t => t.done);
+  return [...study.values()].filter(m => !m.done && done.some(t => t.fromStudy === m.id || normTitle(t.title) === normTitle(m.title)));
+}
 function renderCloseDay() {
   const open = tasksFor(TODAY).filter(t => !t.done), done = tasksFor(TODAY).filter(t => t.done);
   const body = $("#closeDayBody");
   const parts = [el("div", {}, `Сделано ${done.length} из ${done.length + open.length}.`)];
+  const finished = studyFinishedToday();
+  if (finished.length) {
+    parts.push(el("div", { class: "status" }, "Курс: отмеченные модули станут пройденными, прогресс обновится:"));
+    for (const m of finished) {
+      const prev = body.querySelector(`#sd-${CSS.escape(m.id)}`);
+      parts.push(el("label", {}, el("input", { type: "checkbox", id: "sd-" + m.id, "data-study": m.id, checked: prev ? prev.checked : true }), m.title));
+    }
+  }
   if (open.length) {
     parts.push(el("div", { class: "status" }, "Отмеченные задачи перейдут на завтра:"));
     for (const t of open) {
       const prev = body.querySelector(`#mv-${CSS.escape(t.id)}`);
-      parts.push(el("label", {}, el("input", { type: "checkbox", id: "mv-" + t.id, "data-id": t.id,
+      parts.push(el("label", {}, el("input", { type: "checkbox", id: "mv-" + t.id, "data-move": t.id,
         checked: prev ? prev.checked : !t.urgent && !t.recurringId }), t.title, t.urgent ? el("span", { class: "chip hot" }, "срочно") : null));
     }
   }
@@ -1514,6 +1645,8 @@ async function reopenDay() {
   reopening = true; renderHeader();
   try {
     if (!(await write(() => db.collection("days").doc(TODAY).delete()))) return;
+    // модули, засчитанные при закрытии, снова открыты
+    for (const id of d.studyIds || []) if (study.has(id)) await write(() => studyRef(id).update({ done: false, doneAt: null }));
     for (const t of back) {
       await moveTask(t, TODAY);
       // закрытие засчитало перенос, а мы его отменили
@@ -1527,14 +1660,19 @@ $("#endDayBtn").addEventListener("click", () => { if (dayToday?.closedAt) { reop
 $("#cancelClose").addEventListener("click", () => { closing = false; $("#closeDay").hidden = true; renderHeader(); });
 $("#confirmClose").addEventListener("click", async () => {
   const all = tasksFor(TODAY);
-  const ids = new Set([...document.querySelectorAll("#closeDayBody input:checked")].map(i => i.dataset.id));
+  const ids = new Set([...document.querySelectorAll("#closeDayBody input[data-move]:checked")].map(i => i.dataset.move));
+  const passed = [...document.querySelectorAll("#closeDayBody input[data-study]:checked")].map(i => study.get(i.dataset.study)).filter(Boolean);
   const moved = all.filter(t => ids.has(t.id));
   await moveMany(moved, TOMORROW);
+  const at = Date.now(), studyIds = [];
+  for (const m of passed) if (await write(() => studyRef(m.id).update({ done: true, doneAt: at }))) studyIds.push(m.id);
   const ok = await write(() => db.collection("days").doc(TODAY).set({
-    date: TODAY, closedAt: Date.now(), source: "button",
+    date: TODAY, closedAt: at, source: "button",
     done: all.filter(t => t.done).map(t => t.title),
     open: all.filter(t => !t.done && !ids.has(t.id)).map(t => t.title),
-    moved: moved.map(t => t.title), movedIds: moved.map(t => t.id) }), withName("День закрыт. Хорошего вечера") + "!");
+    moved: moved.map(t => t.title), movedIds: moved.map(t => t.id),
+    study: passed.filter(m => studyIds.includes(m.id)).map(m => m.title), studyIds }),
+    withName("День закрыт. Хорошего вечера") + "!" + (studyIds.length ? ` Модулей пройдено: ${studyIds.length}` : ""));
   if (ok) { closing = false; $("#closeDay").hidden = true; renderHeader(); }
 });
 
@@ -1545,6 +1683,7 @@ function reportNode(d, withReopen) {
   if ((d.done || []).length) kids.push(el("div", {}, el("span", { class: "muted" }, "Готово: "), d.done.join(" · ")));
   if ((d.moved || []).length) kids.push(el("div", {}, el("span", { class: "muted" }, "Перенесено: "), d.moved.join(" · ")));
   if ((d.open || []).length) kids.push(el("div", {}, el("span", { class: "muted" }, "Осталось: "), d.open.join(" · ")));
+  if ((d.study || []).length) kids.push(el("div", {}, el("span", { class: "muted" }, "Курс, пройдено: "), d.study.join(" · ")));
   if (d.note) kids.push(el("div", { class: "muted" }, d.note));
   if (withReopen) kids.push(el("div", { class: "sub-row" }, el("button", { class: "btn small", type: "button", disabled: reopening, onclick: reopenDay }, "Открыть день снова"),
     (d.moved || []).length ? el("span", { class: "status" }, "перенесённые на завтра вернутся на сегодня") : null));

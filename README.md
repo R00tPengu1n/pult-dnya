@@ -24,6 +24,9 @@ demo mode with made-up data kept in memory, so it can be tried without an accoun
 - **Manual order.** ↑↓ arrows move a task within the list; done tasks sink, urgent ones rise.
 - **Undo delete.** After deleting a task or a recurring rule, "Undo" brings it back for
   seven seconds with all its fields and its calendar event.
+- **Copy a task.** Half done today? Copy it to tomorrow (and mark today's copy done), spread
+  it over several days in a row (optionally weekdays only), or turn it into a recurring task
+  with the task itself as the first in the series. Every copy can be undone from the toast.
 - **Recurring tasks.** Every day, weekdays, weekends, chosen weekdays, every two weeks, or
   once a month (including the last day of the month); the backlog shows the next date.
 - **Smart input.** A date, an estimate, urgency and repetition typed at the start or end of
@@ -52,7 +55,9 @@ demo mode with made-up data kept in memory, so it can be tried without an accoun
 - **Rhythm.** A streak of days with finished tasks, tasks done over the week, the share of
   tasks that get postponed, and a bar chart for the last seven days.
 - **Study.** Course modules with deadlines and progress; a module that is due soon is
-  highlighted and can be added to today's tasks in one click.
+  highlighted and can be added to today's tasks in one click. Closing the day marks a module
+  passed when its task was done today, so the progress updates by itself; a forgotten day is
+  handled the same way by the morning agent.
 - **Pomodoro timer.** 25/5 minutes with a long break after four rounds, linked to a course
   module. The alarm is scheduled on the audio clock in advance, so it rings on time even in a
   background tab, and a full-screen notice stays until dismissed. Daily counts are saved.
